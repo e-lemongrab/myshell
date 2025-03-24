@@ -7,19 +7,14 @@ myshell() {
   #CORE
   # commands
   red
-  echo ">""$(cyan)Commands"
-  echo -e "help_mysql\thelp_git\thelp_gcloud\thelp_docker\tgenera_password\tdockrm\tcrlf_to_lf\tclear_ram"
-  #echo -e "\n"
+  echo ">""$(cyan)myshell"
+  echo -e \
+   "myshell - available commands\nchecks - compatibility software checks"
   echo ""
   # help
   red
   echo ">""$(white)Help"
-  echo -e \
-    "checks - project checks "
-  list=$(ls "$project_path"/modules/help)
-  for item in $list; do
-    echo -n "help_$item "
-  done
+  echo -e "help_arch\thelp_az\thelp_dig\thelp_docker\thelp_gcloud\thelp_git\thelp_kubectl\thelp_mysql\thelp_terraform"
   #
   #MODULES
   # docker
