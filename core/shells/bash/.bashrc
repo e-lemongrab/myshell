@@ -1,10 +1,10 @@
+## Time lapse bash loading
+initial_result=$(date +%s%3N)
 # Jobs
 bash "$project_path"/core/shells/bash/jobs/public_ip.bash &
-sleep 1
+sleep 1.5
 #bash "$project_path"/core/shells/bash/jobs/online_users.bash&
-sleep 1
-## Time lapse bash loading
-initial_result=$(date +%s)
+# sleep 1
 # Load functions
 if [ -f "$project_path"/core/shells/bash/functions/checks.bash ]; then
 	. "$project_path"/core/shells/bash/functions/checks.bash
@@ -62,10 +62,12 @@ fi
 if [ -f "$project_path"/core/shells/bash/profiles/.config_files ]; then
 	. "$project_path"/core/shells/bash/profiles/.config_files
 fi
-# Bash time lapse ends
-final_result=$(date +%s)
-echo -e '\033[1;33m'"Execution time was $(expr "$final_result" - "$initial_result") seconds."'\e[1;37m'
-# Load profiles
 if [ -f "$project_path"/core/shells/bash/profiles/.ssh ]; then
 	. "$project_path"/core/shells/bash/profiles/.ssh
 fi
+# Bash time lapse ends
+final_result=$(date +%s%3N)
+elapsed_time=$((final_result - initial_result))
+seconds=$((elapsed_time / 1000))
+milliseconds=$((elapsed_time % 1000))
+echo -e '\033[1;33m'"Execution time was ${seconds}.${milliseconds} seconds."'\e[1;37m'
