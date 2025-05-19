@@ -2,7 +2,7 @@ name: Docker Build, Push, and SBOM (Scheduled)
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # This runs every day at 2 AM UTC
+    - cron: '0 2 * * 0'  # This runs every day at 2 AM UTC
   workflow_dispatch:  # Allow for manual trigger of the workflow
 
 jobs:
