@@ -27,11 +27,24 @@ fi
 if ! command -v firefox &> /dev/null; then
     :
 else
+    # Get all the profile paths from the profiles.ini file
     firefox_profiles=$(awk -F'=' '/^Path=/{print $2}' ~/.mozilla/firefox/profiles.ini)
+
     # Iterate over each profile path
     while IFS= read -r profile; do
-        if [ ! -f ~/.mozilla/firefox/"$profile"/user.js ]; then
-            curl -o ~/.mozilla/firefox/"$profile"/user.js https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/firefox/user.js > /dev/null 2>&1
+        # Get the full profile directory path
+        profile_dir="$HOME/.mozilla/firefox/$profile"
+
+        # Skip if the profile is inside the 'work' directory
+        if [[ "$profile_dir" == *"/work/"* ]]; then
+            echo "Skipping profile in work directory: $profile_dir"
+            continue
+        fi
+
+        # Check if user.js exists in the correct profile directory
+        if [ ! -f "$profile_dir/user.js" ]; then
+            # Only download if user.js does not exist
+            curl -o "$profile_dir/user.js" https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/firefox/user.js > /dev/null 2>&1
         fi
     done <<< "$firefox_profiles"
 fi
