@@ -1,6 +1,3 @@
-#https://docs.docker.com/build/ci/github-actions/attestations/#sbom
-# https://github.com/docker/build-push-action
-
 name: Docker Build, Push, and SBOM
 
 on:
@@ -14,7 +11,6 @@ jobs:
   get_modified_dirs:
     runs-on: ubuntu-latest
     outputs:
-      #modified_dirs: ${{ steps.modified_dirs.outputs.MODIFIED_DIRS }}  # Set the output for modified dirs
       modified_dirs: ${{ env.MODIFIED_DIRS }}
     steps:
       - name: Checkout code
@@ -126,13 +122,16 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/mongodb
 
-      - name: Build and Push Docker image with SBOM and Provenance
+      - name: Build and Push Docker image with SBOM and Provenance for multiple architectures
         uses: docker/build-push-action@v6
         with:
           context: modules/docker/mongodb  # Path to the directory with the Dockerfile
           file: modules/docker/mongodb/Docker/dockerfile  # Path to the Dockerfile
           push: true  # Push the image to Docker Hub
-          tags: ${{ secrets.DOCKER_USERNAME }}/mongodb:latest  # Tag for the Docker image
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-x86_64  # x86_64 tag
+            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-arm64   # arm64 tag
+          platforms: linux/amd64,linux/arm64  # Build for both x86_64 and arm64 architectures
           build-args: |
             DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
             IMAGE_OPENSUSELEAP=${{ vars.IMAGE_OPENSUSELEAP }}
