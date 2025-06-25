@@ -1,13 +1,12 @@
-name: Docker Build, Push, and SBOM (Scheduled and On Push)
+name: Docker Build, Push, and SBOM (Manual Trigger)
 
 on:
-  push:
-    branches:
-      - master  # Triggered when changes are pushed to the 'master' branch
-    paths:
-      - 'modules/docker/**'  # Triggered when any file under the 'modules/docker/' directory is modified
-  schedule:
-    - cron: '0 2 * * 0'  # This runs every day at 2 AM UTC
+  workflow_dispatch:  # Only manual trigger
+    inputs:
+      architecture:
+        description: 'Which architecture to build?'
+        required: true
+        default: 'both'  # Options: 'both', 'x86_64', 'arm64'
 
 jobs:
   build_mysql5:
