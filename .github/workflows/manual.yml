@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: modules/docker/mysql5
-          file: modules/docker/mysql5/Dockerfile
+          file: modules/docker/mysql5/Docker/dockerfile  # Corrected file path
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/mysql5:latest-x86_64
@@ -61,11 +61,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: modules/docker/mongodb
-          file: modules/docker/mongodb/Dockerfile
+          file: modules/docker/mongodb/Dockerfile  # Ensure this path is correct for MongoDB Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-x86_64  # x86_64 tag
-            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-arm64   # arm64 tag
+            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-x86_64
+            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-arm64
           platforms: linux/amd64,linux/arm64  # Build for both x86_64 and arm64 architectures
           build-args: |
             DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
