@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: modules/docker/mysql5
-          file: modules/docker/mysql5/Docker/dockerfile  # Corrected file path
+          file: modules/docker/mysql5/Docker/dockerfile  # Corrected file path for MySQL
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/mysql5:latest-x86_64
@@ -38,7 +38,7 @@ jobs:
           platforms: linux/amd64,linux/arm64  # Build for both x86_64 and arm64 architectures
           build-args: |
             DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
-            IMAGE_MYSQL5=${{ vars.IMAGE_MYSQL5 }}
+            IMAGE_MYSQL5=mysql:5  # Use MySQL 5 (latest version) compatible with both platforms
           sbom: true
           provenance: mode=max
 
@@ -62,7 +62,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: modules/docker/mongodb
-          file: modules/docker/mongodb/Dockerfile  # Ensure this path is correct for MongoDB Dockerfile
+          file: modules/docker/mongodb/Docker/dockerfile  # Corrected path for MongoDB Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-x86_64
