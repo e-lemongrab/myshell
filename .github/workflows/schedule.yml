@@ -1,4 +1,4 @@
-name: Docker Build, Push, and SBOM (Scheduled and On Push)
+name: Docker Build, Push, and SBOM
 
 on:
   push:
@@ -8,68 +8,110 @@ on:
       - 'modules/docker/**'  # Triggered when any file under the 'modules/docker/' directory is modified
   schedule:
     - cron: '0 2 * * 0'  # This runs every day at 2 AM UTC
+  workflow_dispatch:  # Allow for manual trigger of the workflow
 
 jobs:
   build_mysql5:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # Ensure the code is checked out
 
       # Docker login step
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}  # Ensure this secret is set
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Ensure this secret is set
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v2  # Set up Docker Buildx for advanced building
 
-      - name: Build and Push Docker image for MySQL5 (Multi-Architecture)
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/mysql5
+
+      - name: Build and Push Docker image with SBOM and Provenance
         uses: docker/build-push-action@v6
         with:
-          context: modules/docker/mysql5
-          file: modules/docker/mysql5/Docker/dockerfile  # Corrected file path for MySQL
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/mysql5:latest-x86_64
-            ${{ secrets.DOCKER_USERNAME }}/mysql5:latest-arm64
-          platforms: linux/amd64,linux/arm64  # Build for both x86_64 and arm64 architectures
+          context: modules/docker/mysql5  # Path to the directory with the Dockerfile
+          file: modules/docker/mysql5/Docker/dockerfile  # Path to the Dockerfile
+          push: true  # Push the image to Docker Hub
+          tags: ${{ secrets.DOCKER_USERNAME }}/mysql5:latest  # Tag for the Docker image
           build-args: |
             DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
-            IMAGE_MYSQL5=mysql:5  # Use MySQL 5 (latest version) compatible with both platforms
-          sbom: true
-          provenance: mode=max
+            IMAGE_MYSQL5=${{ vars.IMAGE_MYSQL5 }}
+          sbom: true  # Enable SBOM generation
+          provenance: mode=max  # Enable maximum provenance attestation (this will include signing)
+
+  build_mysql8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Ensure the code is checked out
+
+      # Docker login step
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}  # Ensure this secret is set
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Ensure this secret is set
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2  # Set up Docker Buildx for advanced building
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/mysql8
+
+      - name: Build and Push Docker image with SBOM and Provenance
+        uses: docker/build-push-action@v6
+        with:
+          context: modules/docker/mysql8  # Path to the directory with the Dockerfile
+          file: modules/docker/mysql8/Docker/dockerfile  # Path to the Dockerfile
+          push: true  # Push the image to Docker Hub
+          tags: ${{ secrets.DOCKER_USERNAME }}/mysql8:latest  # Tag for the Docker image
+          build-args: |
+            DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
+            IMAGE_MYSQL8=${{ vars.IMAGE_MYSQL8 }}
+          sbom: true  # Enable SBOM generation
+          provenance: mode=max  # Enable maximum provenance attestation (this will include signing)
 
   build_mongodb:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # Ensure the code is checked out
 
       # Docker login step
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}  # Ensure this secret is set
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Ensure this secret is set
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v2  # Set up Docker Buildx for advanced building
 
-      - name: Build and Push Docker image for MongoDB (Multi-Architecture)
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/mongodb
+
+      - name: Build and Push Docker image with SBOM and Provenance
         uses: docker/build-push-action@v6
         with:
-          context: modules/docker/mongodb
-          file: modules/docker/mongodb/Docker/dockerfile  # Corrected path for MongoDB Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-x86_64
-            ${{ secrets.DOCKER_USERNAME }}/mongodb:latest-arm64
-          platforms: linux/amd64,linux/arm64  # Build for both x86_64 and arm64 architectures
+          context: modules/docker/mongodb  # Path to the directory with the Dockerfile
+          file: modules/docker/mongodb/Docker/dockerfile  # Path to the Dockerfile
+          push: true  # Push the image to Docker Hub
+          tags: ${{ secrets.DOCKER_USERNAME }}/mongodb:latest  # Tag for the Docker image
           build-args: |
             DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
             IMAGE_OPENSUSELEAP=${{ vars.IMAGE_OPENSUSELEAP }}
-          sbom: true
-          provenance: mode=max
+          sbom: true  # Enable SBOM generation
+          provenance: mode=max  # Enable maximum provenance attestation (this will include signing)
