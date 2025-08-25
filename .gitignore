@@ -1,3 +1,4 @@
+# Docker
 modules/docker/mysql8/mysql-data/
 modules/docker/mysql5/docker-entrypoint-initdb.d/inicial.sql
 modules/docker/mysql8/docker-entrypoint-initdb.d/inicial.sql
@@ -18,5 +19,10 @@ modules/docker/cockroach/Docker/cockroach-data
 modules/docker/cockroach/Docker/cockroach-logs
 modules/docker/cockroach/Docker/docker-entrypoint-initdb.d
 modules/docker/crontab-git/keys/*
-*/**/**.csv
 modules/docker/apache/images/*.png
+# All the following file type
+*.csv
+# Ignore everything in aliases/
+core/shells/bash/aliases/*
+## But not this file
+!core/shells/bash/aliases/.aliases

@@ -15,6 +15,15 @@ alias h="history"
 alias e="exit"
 alias clear_ram="sudo bash -c 'echo 1 > /proc/sys/vm/drop_caches'"
 alias cat_input="read input; cat * | grep -r --exclude-dir=".*" $input"
+# tmux
+alias tmuxon="tmux new -s docker -d&tmux new -s cloud -d&tmux new -s testing -d&"
+alias tmuxls="tmux ls"
+alias tmuxattach="tmux a -t"
+# terraform
+alias tfi="rm -rf .terraform; rm -rf .terraform.lock.hcl; terraform init --upgrade"
+alias tfp="terraform plan "
+alias tff="terraform fmt"
+alias tfa="terraform apply "
 # bw - bitwarden
 alias bw="$HOME/'.config/Bitwarden CLI/bw'"
 alias bw_eu="bw config server https://vault.bitwarden.eu"
@@ -77,6 +86,7 @@ else
 echo "To use docker you must be in docker group"
 fi
 ## modules - k8s
+alias k="kubectl"
 check_kubectl=$(kubectl &> /dev/null; echo $?)
 if [ "$check_kubectl" = "0" ]
         then
@@ -110,5 +120,8 @@ then
         alias john_unshadow="bash $project_path/modules/john/unshadow/unshadow.bash"
         alias john_zip="bash $project_path/modules/john/zip/zip.bash"
 fi
+# Utils
+alias check_domains="bash ~/Documents/myshell/modules/utils/ssl/ssl_check.bash"
+alias cert_base64_for_sealed_secret="bash ~/Documents/myshell/modules/utils/certs/cert_base64_for_sealed_secret.bash"
 ## modules - yt-dlp
 alias download="bash $project_path/modules/yt-dlp/yt-dlp.bash"
