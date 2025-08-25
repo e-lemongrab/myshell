@@ -5,6 +5,10 @@ cyan
 echo "Azure"
 nocolor
 yellow
+echo "Packages"
+nocolor
+echo -e "\tbrew install az; sudo pacman -S azure-kubelogin"
+yellow
 echo "Extensions"
 nocolor
 echo -e "\tTo perform Pull Request from terminal"
