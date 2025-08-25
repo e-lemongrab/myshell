@@ -31,11 +31,11 @@ if [ -f "$project_path"/core/shells/bash/functions/shellcheck.bash ]; then
 	. "$project_path"/core/shells/bash/functions/shellcheck.bash
 fi
 # Load aliases
-if [ -f "$project_path"/core/shells/bash/aliases/.aliases ]; then
-	. "$project_path"/core/shells/bash/aliases/.aliases
-fi
-if [ -f "$project_path"/core/shells/bash/aliases/.aliases_work ]; then
-	. "$project_path"/core/shells/bash/aliases/.aliases_work
+dir="$project_path/core/shells/bash/aliases"
+if [ -d "$dir" ] && [ "$(ls -A "$dir")" ]; then
+  for f in "$dir"/.* "$dir"/*; do
+    [ -f "$f" ] && . "$f"
+  done
 fi
 # Load profiles
 if [ -f "$project_path"/core/shells/bash/profiles/.git-configs ]; then
