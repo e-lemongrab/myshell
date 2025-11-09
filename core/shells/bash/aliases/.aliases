@@ -123,5 +123,6 @@ fi
 # Utils
 alias check_domains="bash ~/Documents/myshell/modules/utils/ssl/ssl_check.bash"
 alias cert_base64_for_sealed_secret="bash ~/Documents/myshell/modules/utils/certs/cert_base64_for_sealed_secret.bash"
+alias format_disk_ext4="bash ~/Documents/myshell/modules/utils/linux_scripts/format_disk_ext4.bash"
 ## modules - yt-dlp
 alias download="bash $project_path/modules/yt-dlp/yt-dlp.bash"
