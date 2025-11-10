@@ -92,6 +92,7 @@ if [ "$check_kubectl" = "0" ]
         then
 export k8s_env_path=""$project_path"/modules/k8s/env"
 alias k3s="kubectl --kubeconfig ~/.kube/k3s"
+alias delete_namespace=""$project_path"/modules/k8s/menus/utils/delete-namespace.sh"
 alias api="bash $project_path/modules/k8s/menus/api/api.bash"
 alias checks_k8s="bash $project_path/modules/k8s/menus/checks_k8s/checks_k8s.bash"
 alias pod_state_ymls="bash $project_path/modules/k8s/menus/pod_state/ymls.bash"
