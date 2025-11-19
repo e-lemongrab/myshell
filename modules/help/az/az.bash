@@ -27,3 +27,18 @@ yellow
 echo "Set the Default Organization and Project"
 nocolor
 echo -e "\taz devops configure --defaults organization=https://dev.azure.com/YourOrganization project=YourProjectName"
+yellow
+echo "RGs where there is a VPN"
+nocolor
+echo -e "\tfor RG in \$(az group list --query \"[].name\" -o tsv); do"
+echo -e "\t  az network vnet-gateway list \\\\"
+echo -e "\t    --resource-group \"\$RG\" \\\\"
+echo -e "\t    --query \"[].{rg:resourceGroup,name:name}\" \\\\"
+echo -e "\t    -o tsv"
+echo -e "\tdone"
+yellow
+echo "Get VPN credentials"
+nocolor
+echo -e "\taz network vnet-gateway vpn-client show-url \\"
+echo -e "\t  --resource-group rg-name \\"
+echo -e "\t  --name vpn-name"
