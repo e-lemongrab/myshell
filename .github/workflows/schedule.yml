@@ -94,6 +94,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}  # Ensure this secret is set
           password: ${{ secrets.DOCKER_PASSWORD }}  # Ensure this secret is set
 
+      # Enable QEMU so amd64 runner can build arm64 too
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2  # Set up Docker Buildx for advanced building
 
@@ -109,6 +113,8 @@ jobs:
           context: modules/docker/mongodb  # Path to the directory with the Dockerfile
           file: modules/docker/mongodb/Docker/dockerfile  # Path to the Dockerfile
           push: true  # Push the image to Docker Hub
+          # Multi-arch only for mongodb
+          platforms: linux/amd64,linux/arm64
           tags: ${{ secrets.DOCKER_USERNAME }}/mongodb:latest  # Tag for the Docker image
           build-args: |
             DOCKER_REGISTRY_CACHE=${{ vars.DOCKER_REGISTRY_CACHE }}
