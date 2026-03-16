@@ -16,7 +16,7 @@ alias e="exit"
 alias clear_ram="sudo bash -c 'echo 1 > /proc/sys/vm/drop_caches'"
 alias cat_input="read input; cat * | grep -r --exclude-dir=".*" $input"
 # tmux
-alias tmuxon="tmux new -s docker -d&tmux new -s cloud -d&tmux new -s testing -d&"
+alias tmuxon="tmux new -s docker -d&tmux new -s cloud -d&tmux new -s ssh -d&tmux new -s codex -d&"
 alias tmuxls="tmux ls"
 alias tmuxattach="tmux a -t"
 # terraform
