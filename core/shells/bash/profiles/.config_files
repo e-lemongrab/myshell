@@ -48,3 +48,16 @@ else
         fi
     done <<< "$firefox_profiles"
 fi
+
+if command -v Hyprland &> /dev/null || [ -d "$HOME/.config/hypr" ]; then
+    mkdir -p "$HOME/.config/hypr/wallpaper"
+
+    if [ ! -f "$HOME/.config/hypr/hyprland.conf" ]; then
+        curl -o "$HOME/.config/hypr/hyprland.conf" https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/hyprland/hyprland.conf > /dev/null 2>&1
+    fi
+
+    if [ ! -f "$HOME/.config/hypr/wallpaper/wallpaper-rotation.sh" ]; then
+        curl -o "$HOME/.config/hypr/wallpaper/wallpaper-rotation.sh" https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/hyprland/wallpaper/wallpaper-rotation.sh > /dev/null 2>&1
+        chmod +x "$HOME/.config/hypr/wallpaper/wallpaper-rotation.sh"
+    fi
+fi
