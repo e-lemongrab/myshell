@@ -130,4 +130,23 @@ These files are sourced from `.bashrc`, so their activation is reflected there a
   - runs `systemctl --user daemon-reload`
   - runs `systemctl --user enable --now nvidia-fan.service` when needed
 
+### Service prerequisites
+
+- `.hyprland-wallpaper`
+  - `hyprpaper`
+  - `hyprctl`
+  - a valid `~/.config/hypr/hyprpaper.conf`
+  - a local wallpaper directory configured in the script through `WALLPAPER_DIR`
+  - `mpvpaper` if video wallpapers are used
+  - monitor names and interval may need local adjustment
+
+- `.nvidia-fan`
+  - `nvidia-smi`
+  - `nvidia-settings`
+  - `sudo`
+  - `xhost`
+  - a local script at `$HOME/Documents/doc/z_linux/nvidia/nvidiafan.sh`
+  - `sudo` for `nvidia-settings` must work non-interactively in the session where the service runs
+  - the graphical session must be ready; the service definition uses a short startup delay to avoid login-time race conditions
+
 The service definitions come from `config_files`, while `myshell` acts as the bootstrap / installer side.
