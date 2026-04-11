@@ -1,50 +1,22 @@
 #!/bin/bash
-if [ -f ~/.vimrc ]; then
-    :
-else
-    curl -o ~/.vimrc https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.vimrc > /dev/null 2>&1
-fi
-if [ -f ~/.tmux.conf ]; then
-    :
-else
-    curl -o ~/.tmux.conf https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.tmux.conf > /dev/null 2>&1
-fi
-if [ -f ~/.inputrc ]; then
-    :
-else
-    curl -o ~/.inputrc https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.inputrc > /dev/null 2>&1
-fi
-if [ -f ~/.gitconfig ]; then
-    :
-else
-    curl -o ~/.gitconfig https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.gitconfig > /dev/null 2>&1
-fi
-if [ -f ~/.alacritty.toml ]; then
-    :
-else
-    curl -o ~/.alacritty.toml https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.alacritty.toml > /dev/null 2>&1
-fi
+curl -o ~/.vimrc https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.vimrc > /dev/null 2>&1
+curl -o ~/.tmux.conf https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.tmux.conf > /dev/null 2>&1
+curl -o ~/.inputrc https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.inputrc > /dev/null 2>&1
+curl -o ~/.gitconfig https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.gitconfig > /dev/null 2>&1
+curl -o ~/.alacritty.toml https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.alacritty.toml > /dev/null 2>&1
 if ! command -v firefox &> /dev/null; then
     :
 else
-    # Get all the profile paths from the profiles.ini file
     firefox_profiles=$(awk -F'=' '/^Path=/{print $2}' ~/.mozilla/firefox/profiles.ini)
 
-    # Iterate over each profile path
     while IFS= read -r profile; do
-        # Get the full profile directory path
         profile_dir="$HOME/.mozilla/firefox/$profile"
 
-        # Skip if the profile is inside the 'work' directory
         if [[ "$profile_dir" == *"/work/"* ]]; then
             echo "Skipping profile in work directory: $profile_dir"
             continue
         fi
 
-        # Check if user.js exists in the correct profile directory
-        if [ ! -f "$profile_dir/user.js" ]; then
-            # Only download if user.js does not exist
-            curl -o "$profile_dir/user.js" https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/firefox/user.js > /dev/null 2>&1
-        fi
+        curl -o "$profile_dir/user.js" https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/firefox/user.js > /dev/null 2>&1
     done <<< "$firefox_profiles"
 fi
