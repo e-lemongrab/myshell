@@ -65,6 +65,10 @@ fi
 if [ -f "$project_path"/core/shells/bash/profiles/.ssh ]; then
 	. "$project_path"/core/shells/bash/profiles/.ssh
 fi
+# Load services
+if [ -f "$project_path"/core/shells/bash/services/.hyprland-wallpaper ]; then
+	. "$project_path"/core/shells/bash/services/.hyprland-wallpaper
+fi
 # Bash time lapse ends
 final_result=$(date +%s%3N)
 elapsed_time=$((final_result - initial_result))
