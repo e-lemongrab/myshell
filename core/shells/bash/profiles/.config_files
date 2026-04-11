@@ -10,7 +10,11 @@ else
     firefox_profiles=$(awk -F'=' '/^Path=/{print $2}' ~/.mozilla/firefox/profiles.ini)
 
     while IFS= read -r profile; do
-        profile_dir="$HOME/.mozilla/firefox/$profile"
+        if [[ "$profile" = /* ]]; then
+            profile_dir="$profile"
+        else
+            profile_dir="$HOME/.mozilla/firefox/$profile"
+        fi
 
         if [[ "$profile_dir" == *"/work/"* ]]; then
             echo "Skipping profile in work directory: $profile_dir"
