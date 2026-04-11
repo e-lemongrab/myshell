@@ -69,6 +69,9 @@ fi
 if [ -f "$project_path"/core/shells/bash/services/.hyprland-wallpaper ]; then
 	. "$project_path"/core/shells/bash/services/.hyprland-wallpaper
 fi
+if [ -f "$project_path"/core/shells/bash/services/.nvidia-fan ]; then
+	. "$project_path"/core/shells/bash/services/.nvidia-fan
+fi
 # Bash time lapse ends
 final_result=$(date +%s%3N)
 elapsed_time=$((final_result - initial_result))
