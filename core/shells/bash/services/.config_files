@@ -1,0 +1,43 @@
+#!/bin/bash
+
+if ! command -v systemctl >/dev/null 2>&1; then
+    return 0 2>/dev/null || exit 0
+fi
+
+if ! command -v Hyprland >/dev/null 2>&1 && [ ! -d "$HOME/.config/hypr" ]; then
+    return 0 2>/dev/null || exit 0
+fi
+
+SERVICE_DIR="$HOME/.config/systemd/user"
+SERVICE_FILE="$SERVICE_DIR/hypr-wallpaper.service"
+SCRIPT_DIR="$HOME/.config/hypr"
+SCRIPT_FILE="$SCRIPT_DIR/wallpaper-rotation.sh"
+
+SERVICE_URL="https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/services/hyprland/hypr-wallpaper.service"
+SCRIPT_URL="https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/services/hyprland/wallpaper-rotation.sh"
+
+changed=0
+
+mkdir -p "$SERVICE_DIR"
+mkdir -p "$SCRIPT_DIR"
+
+if [ ! -f "$SERVICE_FILE" ]; then
+    curl -o "$SERVICE_FILE" "$SERVICE_URL" > /dev/null 2>&1 && changed=1
+fi
+
+if [ ! -f "$SCRIPT_FILE" ]; then
+    curl -o "$SCRIPT_FILE" "$SCRIPT_URL" > /dev/null 2>&1 && changed=1
+fi
+
+if [ -f "$SCRIPT_FILE" ]; then
+    chmod +x "$SCRIPT_FILE"
+fi
+
+if ! systemctl --user is-enabled hypr-wallpaper.service >/dev/null 2>&1; then
+    changed=1
+fi
+
+if [ "$changed" -eq 1 ]; then
+    systemctl --user daemon-reload >/dev/null 2>&1
+    systemctl --user enable --now hypr-wallpaper.service >/dev/null 2>&1
+fi
