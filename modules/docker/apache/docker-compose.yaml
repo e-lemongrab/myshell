@@ -1,0 +1,12 @@
+services:
+  apache:
+    container_name: apache
+    build:
+      context: .
+    ports:
+      - "1000:80"
+    volumes:
+      - ./tmp:/tmp
+networks:
+  default:
+    name: develop

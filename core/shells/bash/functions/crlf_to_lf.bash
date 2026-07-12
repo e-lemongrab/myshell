@@ -1,6 +1,5 @@
 #!/bin/bash
 crlf_to_lf() {
-	cd $(pwd)
 	sub_dir=/tmp/"$RANDOM"
 	# la seguent comanda no treballa amb directoris/arxius ocults
 	find ./ -type d -not -path '*/.*' 1>"$sub_dir"

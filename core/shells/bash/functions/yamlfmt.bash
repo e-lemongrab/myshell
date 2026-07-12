@@ -1,6 +1,5 @@
 #!/bin/bash
 yamlfmt_files() {
-    cd "$(pwd)"
 	sub_dir=/tmp/"$RANDOM"
     find ./ -type f -not -path '*/.*' \( -name '*.yaml' -o -name '*.yml' \) 1>"$sub_dir"
     for relative_path in $(cat "$sub_dir"); do

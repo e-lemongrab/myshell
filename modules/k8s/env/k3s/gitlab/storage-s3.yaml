@@ -1,8 +1,0 @@
-apiVersion: v1
-data:
-  config: cHJvdmlkZXI6IEFXUwpyZWdpb246IHVzLWVhc3QtMQphd3NfYWNjZXNzX2tleV9pZDogZ2l0bGFiCmF3c19zZWNyZXRfYWNjZXNzX2tleTogdk53VkI0OG1oNUNrVTRiMmhyYVVUVThHMTNmTzgKYXdzX3NpZ25hdHVyZV92ZXJzaW9uOiA0Cmhvc3Q6IHN0b3JlLmludHJhLmJhcmNlbG9uYWN0aXZhLmNhdAplbmRwb2ludDogImh0dHA6Ly9taW5pby1wdWJsaWMtc3ZjLm1pbmlvLnN2Yzo5MDAwIgpwYXRoX3N0eWxlOiB0cnVl
-kind: Secret
-metadata:
-  name: storage-s3
-  namespace: gitlab-ce
-type: Opaque

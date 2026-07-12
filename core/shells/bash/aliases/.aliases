@@ -64,14 +64,12 @@ alias mysql8_exec="bash $project_path/modules/docker/mysql8/mysql8_exec.bash"
 alias tomcat9="bash $project_path/modules/docker/tomcat9/tomcat9.bash"
 alias tomcat9_exec="bash $project_path/modules/docker/tomcat9/tomcat9_exec.bash"
 alias apache="bash $project_path/modules/docker/apache/apache.bash"
-alias openldap="bash $project_path/modules/docker/openldap/openldap.bash"
 alias mongodb="bash $project_path/modules/docker/mongodb/mongodb.bash"
 alias mongodb_exec="bash $project_path/modules/docker/mongodb/mongodb_exec.bash"
 alias maven="bash $project_path/modules/docker/maven/maven.bash"
 alias maven_exec="bash $project_path/modules/docker/maven/maven_exec.bash"
 alias nexus="bash $project_path/modules/docker/nexus/nexus.bash"
 alias nexus_exec="bash $project_path/modules/docker/nexus/nexus_exec.bash"
-alias passbolt="bash $project_path/modules/docker/passbolt/passbolt.bash"
 alias jira_software="bash $project_path/modules/docker/jira-software/jira-software.bash"
 alias jira_software_cero_exec="bash $project_path/modules/docker/jira-software/jira-software_cero_exec.bash"
 alias jira_software_uno_exec="bash $project_path/modules/docker/jira-software/jira-software_uno_exec.bash"
@@ -79,39 +77,13 @@ alias nodejs="bash $project_path/modules/docker/nodejs/nodejs.bash"
 alias nodejs_exec="bash $project_path/modules/docker/nodejs/nodejs_exec.bash"
 alias nginx="bash $project_path/modules/docker/nginx/nginx.bash"
 alias nginx_exec="bash $project_path/modules/docker/nginx/nginx_exec.bash"
-alias k6="pwsh $project_path/modules/docker/k6/k6.ps1"
-alias k6_exec="bash $project_path/modules/docker/k6/k6_exec.bash"
+alias k6="bash $project_path/modules/docker/k6/k6.bash"
 else
 echo "To use docker you must be in docker group"
 fi
-## modules - k8s
+# kubectl
 alias k="kubectl"
-check_kubectl=$(kubectl &> /dev/null; echo $?)
-if [ "$check_kubectl" = "0" ]
-        then
-export k8s_env_path=""$project_path"/modules/k8s/env"
 alias k3s="kubectl --kubeconfig ~/.kube/k3s"
-alias delete_namespace=""$project_path"/modules/k8s/menus/utils/delete-namespace.sh"
-alias api="bash $project_path/modules/k8s/menus/api/api.bash"
-alias checks_k8s="bash $project_path/modules/k8s/menus/checks_k8s/checks_k8s.bash"
-alias pod_state_ymls="bash $project_path/modules/k8s/menus/pod_state/ymls.bash"
-alias pod_actions_exec="bash $project_path/modules/k8s/menus/pod_actions/exec.bash"
-alias pod_actions_copy_from="bash $project_path/modules/k8s/menus/pod_actions/copy_from.bash"
-alias pod_actions_logs="bash $project_path/modules/k8s/menus/pod_actions/logs.bash"
-alias pod_actions_describe="bash $project_path/modules/k8s/menus/pod_actions/describe.bash"
-alias pod_actions_labels="bash $project_path/modules/k8s/menus/pod_actions/labels.bash"
-alias pvc="bash $project_path/modules/k8s/menus/storage/pvc.bash"
-alias storage_pvc_elimina="bash $project_path/modules/k8s/menus/storage/pvc_elimina.bash"
-alias storage_pv_released="bash $project_path/modules/k8s/menus/storage/pv_released.bash"
-alias storage_pv_elimina="bash $project_path/modules/k8s/menus/storage/pv_elimina.bash"
-alias rbac_crea="bash $project_path/modules/k8s/menus/rbac/crea_claus.bash"
-alias rbac_elimina="bash $project_path/modules/k8s/menus/rbac/elimina_claus.bash"
-alias secrets="bash $project_path/modules/k8s/menus/secrets/secrets.bash"
-fi
-## modules - minikube
-alias minikube_launch="bash $project_path/modules/minikube/menu.bash"
-## modules - ssh
-alias ssh_create="bash $project_path/modules/ssh/ssh_create/keys.bash"
 ## modules - john
 check_john=$(john &> /dev/null; echo $?)
 if [ "$check_john" = "0" ]

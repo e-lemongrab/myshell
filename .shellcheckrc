@@ -1,0 +1,10 @@
+# shellcheck configuration - directive syntax only (https://www.shellcheck.net/wiki/Directive)
+# Note: shellcheck cannot exclude files from an rc file; to skip a file,
+# add "# shellcheck disable=all" below its shebang or omit it from the CLI invocation.
+
+# Extension-less profile/dot-files (.appearance, .aliases, ...) have no shebang;
+# treat everything as bash.
+shell=bash
+
+# Allow following source statements to files outside the checked file's directory
+external-sources=true
