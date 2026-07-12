@@ -26,3 +26,5 @@ modules/docker/apache/images/*.png
 core/shells/bash/aliases/*
 ## But not this file
 !core/shells/bash/aliases/.aliases
+# myshell machine-local state (menu enable/disable bookkeeping)
+.module_state/

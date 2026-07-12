@@ -2,7 +2,7 @@
 
 `myshell` is a Bash-first hybrid framework for building, bootstrapping, and operating a modular user environment.
 
-It treats the shell runtime as the technical base, then layers optional profiles, user services, and operational modules on top of it. The result is a structured system that aims for two main properties:
+It treats the shell runtime as the technical base, then layers optional profiles and operational modules on top of it. The result is a structured system that aims for two main properties:
 
 - **modularity**: each component has a clear layer, a concrete purpose, and explicit activation
 - **reproducibility**: the managed local environment and its modular composition can be reproduced consistently
@@ -14,7 +14,7 @@ It treats the shell runtime as the technical base, then layers optional profiles
 `myshell` is designed to:
 - bootstrap a Bash-based user environment
 - manage shell runtime behavior through a structured core
-- load optional profiles and user services explicitly
+- load optional profiles explicitly
 - expose operational modules through a stable framework structure
 - integrate official external companion repositories such as `config_files`
 
@@ -42,18 +42,9 @@ Profiles are optional environment components loaded from `core/shells/bash/profi
 
 Profiles are part of the framework core model. They are used for shell environment setup, bootstrap behavior, and managed configuration deployment.
 
-Profiles are opt-in through explicit loader blocks in `.bashrc`.
+    Profile are opt-in through explicit loader blocks in `.bashrc`.
 
-### Services
-Services are optional components loaded from `core/shells/bash/services/`.
-
-Services are also part of the framework core model, but are intended for persistent or service-like integrations that should not live as normal shell profiles.
-
-Typical examples are `systemd --user` units and their companion scripts.
-
-Services are opt-in through explicit loader blocks in `.bashrc`.
-
-### Modules
+    ### Modules
 Modules are operational tooling components. They expose commands and workflows on top of the stable user-environment base provided by the framework.
 
 Modules are part of the core identity of `myshell`, not an afterthought.
@@ -89,7 +80,7 @@ This means:
 - the **experience of use**
 
 What may vary:
-- which profiles, services, and modules are enabled
+- which profiles and modules are enabled
 - which components are sourced from the official companion repository
 - future official external integrations in the `myshell` ecosystem
 
@@ -122,12 +113,10 @@ Current top-level structure relevant to the framework model:
   - framework runtime and shell entrypoints
 - `core/shells/bash/profiles/`
   - optional managed environment components
-- `core/shells/bash/services/`
-  - optional managed service integrations
 - `core/shells/bash/.bash_profile`
   - framework entrypoint
 - `core/shells/bash/.bashrc`
-  - explicit activation surface for profiles and services
+  - explicit activation surface for profiles
 - `modules/`
   - operational toolkit components
 - `core/shells/pwsh/`
@@ -166,9 +155,9 @@ If you want to use the PowerShell profile from Windows:
 2. Edit `$PROFILE` with the content from `core/shells/pwsh/Microsoft.PowerShell_profile.ps1`.
 3. Set the required values in the `VARIABLE DECLARATION` section.
 
-## Profiles and services
+## Profiles and modules
 
-`myshell` loads optional Bash components from `core/shells/bash/profiles/` and `core/shells/bash/services/` through explicit blocks in `core/shells/bash/.bashrc`.
+`myshell` loads optional Bash components from `core/shells/bash/profiles/` through explicit blocks in `core/shells/bash/.bashrc`.
 
 ### Profiles currently loaded by default blocks in `.bashrc`
 
@@ -182,49 +171,6 @@ Examples include:
 - `.software`
 - `.config_files`
 - `.ssh`
-
-### Services currently supported
-
-Examples include:
-- `.hyprland-wallpaper`
-- `.nvidia-fan`
-
-These are framework-managed service integrations and are activated through `.bashrc` loader blocks.
-
-### Current service behavior
-
-`.hyprland-wallpaper`
-- downloads `hypr-wallpaper.service` from `config_files`
-- downloads `wallpaper-rotation.sh` from `config_files`
-- installs them into local user paths
-- runs `systemctl --user daemon-reload`
-- runs `systemctl --user enable --now hypr-wallpaper.service` when needed
-
-`.nvidia-fan`
-- downloads `nvidia-fan.service` from `config_files`
-- downloads `nvidiafan.sh` from `config_files`
-- installs them into local user paths
-- runs `systemctl --user daemon-reload`
-- runs `systemctl --user enable --now nvidia-fan.service` when needed
-
-### Service prerequisites
-
-`.hyprland-wallpaper`
-- `hyprpaper`
-- `hyprctl`
-- a valid `~/.config/hypr/hyprpaper.conf`
-- a local wallpaper directory configured in the script through `WALLPAPER_DIR`
-- `mpvpaper` if video wallpapers are used
-- monitor names and interval may need local adjustment
-
-`.nvidia-fan`
-- `nvidia-smi`
-- `nvidia-settings`
-- `sudo`
-- `xhost`
-- a deployed script at `~/.config/nvidia/nvidiafan.sh`
-- `sudo` for `nvidia-settings` must work non-interactively in the session where the service runs
-- the graphical session must be ready; the service definition uses a short startup delay to avoid login-time race conditions
 
 ## Companion repository: `config_files`
 

@@ -1,6 +1,5 @@
 #!/bin/bash
 shfmt_files() {
-	cd "$(pwd)"
 	sub_dir=/tmp/"$RANDOM"
 	# The following command does not work with hidden directories/files
 	find ./ -type d -not -path '*/.*' 1>"$sub_dir"

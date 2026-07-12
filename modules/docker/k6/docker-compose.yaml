@@ -1,0 +1,10 @@
+services:
+  k6:
+    image: grafana/k6
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./:/mnt/local
+networks:
+  default:
+    name: k6
