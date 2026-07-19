@@ -23,7 +23,7 @@ echo "docker cp index.html 4f950f3d6c81:/srv/www/htdocs/index.html"
 yellow
 echo "Entrypoint sempre"
 nocolor
-echo "ENTRYPOINT ["tail", "-f", "/dev/null"]"
+echo 'ENTRYPOINT ["tail", "-f", "/dev/null"]'
 yellow
 echo "Helm"
 nocolor

@@ -1,5 +1,5 @@
 #!/bin/bash
-cd $project_path/modules/docker/mongodb
+cd "$project_path/modules/docker/mongodb" || exit 1
 case "$1" in
   arm)
     echo "[mongodb] Starting in ARM64 mode..."
@@ -16,4 +16,4 @@ case "$1" in
     unset COMPOSE_DOCKER_CLI_BUILD
     ;;
 esac
-cd
+cd "$OLDPWD" || exit 1

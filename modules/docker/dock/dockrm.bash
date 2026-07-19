@@ -6,18 +6,18 @@ if [ $num_imatges_docker -gt 1 ]; then
 	cyan
 	echo "Eliminar containers.."
 	nocolor
-	docker rm $(docker ps -a -q) -f
+	docker ps -a -q | xargs -r docker rm -f
 fi
 if [ $num_imatges_docker -gt 1 ]; then
 	cyan
 	echo "Eliminar imatges.."
 	nocolor
-	docker rmi $(docker images -a -q) -f
+	docker images -a -q | xargs -r docker rmi -f
 fi
 cyan
 echo "Delete volumes..."
 nocolor
-docker volume ls -q | grep -q . && docker volume rm $(docker volume ls -q)
+docker volume ls -q | grep -q . && docker volume ls -q | xargs -r docker volume rm
 cyan
 echo "Delete networks..."
 nocolor

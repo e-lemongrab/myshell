@@ -1,4 +1,6 @@
 #!/bin/bash
+# Docker entrypoint script - exec "$@" and sed quoting patterns are intentional
+# shellcheck disable=SC2027,SC2093
 ###TEMPORAL
 DB_HOSTNAME=mysql5
 DB_USERNAME=vtiger

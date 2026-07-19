@@ -1,3 +1,4 @@
+#!/bin/bash
 # GIT
 export HOMEBREW_GIT_PATH=$(whereis git | awk {'print $2'})
 parse_git_branch() {

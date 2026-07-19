@@ -1,3 +1,4 @@
+#!/bin/bash
 ## History settings
 #export HISTFILE=$project_path/core/shells/bash/.bash_history
 export HISTFILE="$HOME"/.bash_history

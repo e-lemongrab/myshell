@@ -1,6 +1,6 @@
 #!/bin/bash
 script_path=$(dirname $0)
-source ""$script_path"/functions.bash"
+source "$script_path/functions.bash"
 #Main
 echo -e "1) Check if leaked - password\n"
 echo -e "2) Check if leaked - hash\n"

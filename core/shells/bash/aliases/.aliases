@@ -1,100 +1,35 @@
-#Exports
-export mod_colors="$project_path"/core/shells/bash/functions/colors.bash
-export ssl_functions="$project_path"/modules/utils/ssl/functions.bash
-export certs_functions="$project_path"/modules/utils/certs/functions.bash
-source "$project_path"/core/shells/bash/functions/crlf_to_lf.bash
-# Facilities
-alias cls="clear"
-alias c="code ."
-alias free="free -mh"
-alias grep="grep --color=auto"
-alias ls="ls -lah --color"
-alias nano="nano -l"
-alias h="history"
-alias e="exit"
-alias clear_ram="sudo bash -c 'echo 1 > /proc/sys/vm/drop_caches'"
-alias cat_input="read input; cat * | grep -r --exclude-dir=".*" $input"
-# tmux
-alias tmuxon="tmux new -s docker -d&tmux new -s cloud -d&tmux new -s ssh -d&tmux new -s codex -d&"
-alias tmuxls="tmux ls"
-alias tmuxattach="tmux a -t"
-# terraform
-alias tfi="rm -rf .terraform; rm -rf .terraform.lock.hcl; terraform init --upgrade"
-alias tfp="terraform plan "
-alias tff="terraform fmt"
-alias tfa="terraform apply "
-# bw - bitwarden
-alias bw="$HOME/'.config/Bitwarden CLI/bw'"
-alias bw_eu="bw config server https://vault.bitwarden.eu"
-alias bw_create="'$project_path'/modules/bw/bw-history-create.bash"
-alias bw_push="'$project_path'/modules/bw/bw-history-push.bash"
-alias bw_clone="'$project_path'/modules/bw/bw-history-clone.bash"
-#git
-alias gp="git pull"
-alias gpush="git push"
-alias gs="git status"
-alias gl="git log"
-alias gc="git log --branches --not --remotes"
-alias gsoft="git reset --soft HEAD~1"
-alias ghard="git reset --hard HEAD~1"
-alias gpr="gh pr list"
-# modules
-## modules - help - commands
-alias help_docker="bash $project_path/modules/help/docker/docker.bash"
-alias help_mysql="bash $project_path/modules/help/mysql/mysql.bash"
-alias help_kubectl="bash $project_path/modules/help/kubectl/kubectl.bash"
-alias help_git="bash $project_path/modules/help/git/git.bash"
-alias help_gcloud="bash $project_path/modules/help/gcloud/gcloud.bash"
-alias help_terraform="bash $project_path/modules/help/terraform/terraform.bash"
-alias help_dig="bash $project_path/modules/help/dig/dig.bash"
-alias help_az="bash $project_path/modules/help/az/az.bash"
-alias help_arch="bash $project_path/modules/help/arch/arch.bash"
-## modules - docker
-docker_groups=$(cat /etc/group | grep docker | awk -F: '{ printf $1}')
-docker_str="docker"
-if [ "$docker_groups" = "$docker_str" ]
-        then
-alias dockrm="bash $project_path/modules/docker/dock/dockrm.bash"
-alias alpine="bash $project_path/modules/docker/alpine/alpine.bash"
-alias alpine_exec="bash $project_path/modules/docker/alpine/alpine_exec.bash"
-alias mysql5="bash $project_path/modules/docker/mysql5/mysql5.bash"
-alias mysql5_exec="bash $project_path/modules/docker/mysql5/mysql5_exec.bash"
-alias mysql8="bash $project_path/modules/docker/mysql8/mysql8.bash"
-alias mysql8_exec="bash $project_path/modules/docker/mysql8/mysql8_exec.bash"
-alias tomcat9="bash $project_path/modules/docker/tomcat9/tomcat9.bash"
-alias tomcat9_exec="bash $project_path/modules/docker/tomcat9/tomcat9_exec.bash"
-alias apache="bash $project_path/modules/docker/apache/apache.bash"
-alias mongodb="bash $project_path/modules/docker/mongodb/mongodb.bash"
-alias mongodb_exec="bash $project_path/modules/docker/mongodb/mongodb_exec.bash"
-alias maven="bash $project_path/modules/docker/maven/maven.bash"
-alias maven_exec="bash $project_path/modules/docker/maven/maven_exec.bash"
-alias nexus="bash $project_path/modules/docker/nexus/nexus.bash"
-alias nexus_exec="bash $project_path/modules/docker/nexus/nexus_exec.bash"
-alias jira_software="bash $project_path/modules/docker/jira-software/jira-software.bash"
-alias jira_software_cero_exec="bash $project_path/modules/docker/jira-software/jira-software_cero_exec.bash"
-alias jira_software_uno_exec="bash $project_path/modules/docker/jira-software/jira-software_uno_exec.bash"
-alias nodejs="bash $project_path/modules/docker/nodejs/nodejs.bash"
-alias nodejs_exec="bash $project_path/modules/docker/nodejs/nodejs_exec.bash"
-alias nginx="bash $project_path/modules/docker/nginx/nginx.bash"
-alias nginx_exec="bash $project_path/modules/docker/nginx/nginx_exec.bash"
-alias k6="bash $project_path/modules/docker/k6/k6.bash"
+#!/bin/bash
+# ── Machine-local docker aliases only ──
+# Loaded from .base.sh (core utilities) and .modules.sh (help aliases).
+# This file is for machine-specific overrides that don't belong in .base.sh.
+# shellcheck disable=SC2139
+
+# ── Docker module aliases ──
+if id -nG 2>/dev/null | grep -qw docker; then
+  alias dockrm="bash $project_path/modules/docker/dock/dockrm.bash"
+  alias alpine="bash $project_path/modules/docker/alpine/alpine.bash"
+  alias alpine_exec="bash $project_path/modules/docker/alpine/alpine_exec.bash"
+  alias mysql5="bash $project_path/modules/docker/mysql5/mysql5.bash"
+  alias mysql5_exec="bash $project_path/modules/docker/mysql5/mysql5_exec.bash"
+  alias mysql8="bash $project_path/modules/docker/mysql8/mysql8.bash"
+  alias mysql8_exec="bash $project_path/modules/docker/mysql8/mysql8_exec.bash"
+  alias tomcat9="bash $project_path/modules/docker/tomcat9/tomcat9.bash"
+  alias tomcat9_exec="bash $project_path/modules/docker/tomcat9/tomcat9_exec.bash"
+  alias apache="bash $project_path/modules/docker/apache/apache.bash"
+  alias mongodb="bash $project_path/modules/docker/mongodb/mongodb.bash"
+  alias mongodb_exec="bash $project_path/modules/docker/mongodb/mongodb_exec.bash"
+  alias maven="bash $project_path/modules/docker/maven/maven.bash"
+  alias maven_exec="bash $project_path/modules/docker/maven/maven_exec.bash"
+  alias nexus="bash $project_path/modules/docker/nexus/nexus.bash"
+  alias nexus_exec="bash $project_path/modules/docker/nexus/nexus_exec.bash"
+  alias jira_software="bash $project_path/modules/docker/jira-software/jira-software.bash"
+  alias jira_software_cero_exec="bash $project_path/modules/docker/jira-software/jira-software_cero_exec.bash"
+  alias jira_software_uno_exec="bash $project_path/modules/docker/jira-software/jira-software_uno_exec.bash"
+  alias nodejs="bash $project_path/modules/docker/nodejs/nodejs.bash"
+  alias nodejs_exec="bash $project_path/modules/docker/nodejs/nodejs_exec.bash"
+  alias nginx="bash $project_path/modules/docker/nginx/nginx.bash"
+  alias nginx_exec="bash $project_path/modules/docker/nginx/nginx_exec.bash"
+  alias k6="bash $project_path/modules/docker/k6/k6.bash"
 else
-echo "To use docker you must be in docker group"
+  echo "myshell: docker aliases disabled (user not in docker group)" >&2
 fi
-# kubectl
-alias k="kubectl"
-alias k3s="kubectl --kubeconfig ~/.kube/k3s"
-## modules - john
-check_john=$(john &> /dev/null; echo $?)
-if [ "$check_john" = "0" ]
-then
-        alias john_dictionary="bash $project_path/modules/john/dictionary/dictionary.bash"
-        alias john_unshadow="bash $project_path/modules/john/unshadow/unshadow.bash"
-        alias john_zip="bash $project_path/modules/john/zip/zip.bash"
-fi
-# Utils
-alias check_domains="bash ~/Documents/myshell/modules/utils/ssl/ssl_check.bash"
-alias cert_base64_for_sealed_secret="bash ~/Documents/myshell/modules/utils/certs/cert_base64_for_sealed_secret.bash"
-alias format_disk_ext4="bash ~/Documents/myshell/modules/utils/linux_scripts/format_disk_ext4.bash"
-## modules - yt-dlp
-alias download="bash $project_path/modules/yt-dlp/yt-dlp.bash"

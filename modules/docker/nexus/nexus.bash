@@ -1,4 +1,4 @@
 #!/bin/bash
-cd $project_path/modules/docker/nexus
+cd "$project_path/modules/docker/nexus" || exit 1
 docker compose up --build --force-recreate
-cd
+cd "$OLDPWD" || exit 1
