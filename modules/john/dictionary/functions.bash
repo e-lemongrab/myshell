@@ -5,11 +5,11 @@ leaked_password() {
 	raw_hash=/tmp/"$RANDOM"
 	hash=/tmp/"$RANDOM"
 	echo -n "$plain_text" | openssl md5 >$raw_hash
-	cat $raw_hash | awk '{ printf $2 }' >$hash
+  cat "$raw_hash" | awk '{ printf $2 }' >"$hash"
 	rm -f $raw_hash
-	echo -e $(echo "Looking for: "$(cat $hash))
-	john $hash --wordlist=/usr/share/john/password.lst --format=Raw-MD5 --stdout | head -n10
-	rm -f $hash
+  echo -e "Looking for: $(cat "$hash")"
+  john "$hash" --wordlist=/usr/share/john/password.lst --format=Raw-MD5 --stdout | head -n10
+  rm -f "$hash"
 	plain_text=""
 }
 leaked_hash() {
@@ -38,6 +38,6 @@ leaked_hash() {
 		check_hash=""
 	fi
 }
-rm -rf $HOME/.john/john.rec
-export leaked_password
-export leaked_hash
+  rm -rf "$HOME/.john/john.rec"
+  export leaked_password
+  export leaked_hash

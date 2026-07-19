@@ -1,4 +1,4 @@
 #!/bin/bash
-cd $project_path/modules/docker/nginx
+cd "$project_path/modules/docker/nginx" || exit 1
 docker compose up -d --build --force-recreate
-cd
+cd "$OLDPWD" || exit 1

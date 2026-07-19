@@ -1,4 +1,4 @@
 #!/bin/bash
-cd $project_path/modules/docker/nodejs
+cd "$project_path/modules/docker/nodejs" || exit 1
 docker compose up --build -d --force-recreate
-cd
+cd "$OLDPWD" || exit 1

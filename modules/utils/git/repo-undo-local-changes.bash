@@ -5,7 +5,7 @@ changed_dirs=()
 # Loop through each directory
 for dir in */; do
 	if [ -d "$dir/.git" ]; then
-		cd "$dir"
+		cd "$dir" || continue
 		git reset --hard
 		# git checkout develop  # Checkout the develop branch
 		# git pull              # Pull the latest changes

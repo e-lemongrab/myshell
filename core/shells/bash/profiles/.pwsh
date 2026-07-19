@@ -1,3 +1,4 @@
+#!/bin/bash
 # pwsh
 powershell_yes=$(cat /etc/shells | grep -Eo 'pws[a-z]+' | head -1)
 powershell="pwsh"

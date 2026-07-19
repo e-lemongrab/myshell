@@ -1,3 +1,4 @@
+#!/bin/bash
 ## Time lapse bash loading
 initial_result=$(date +%s%3N)
 # Jobs

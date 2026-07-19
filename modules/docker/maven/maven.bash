@@ -1,4 +1,4 @@
 #!/bin/bash
-cd $project_path/modules/docker/maven
+cd "$project_path/modules/docker/maven" || exit 1
 docker compose up -d --build --force-recreate
-cd
+cd "$OLDPWD" || exit 1

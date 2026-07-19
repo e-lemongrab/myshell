@@ -1,3 +1,4 @@
+#!/bin/bash
 # Allow to use less on compressed files and others, without decompress
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 

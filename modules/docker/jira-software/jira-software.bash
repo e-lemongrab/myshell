@@ -1,4 +1,4 @@
 #!/bin/bash
-cd $project_path/modules/docker/jira-software
+cd "$project_path/modules/docker/jira-software" || exit 1
 docker compose up --build --force-recreate
-cd
+cd "$OLDPWD" || exit 1

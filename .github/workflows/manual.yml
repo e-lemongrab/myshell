@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2  # Ensure the code is checked out
+        uses: actions/checkout@v4  # Ensure the code is checked out
 
       # Docker login step
       - name: Log in to Docker Hub
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2  # Ensure the code is checked out
+        uses: actions/checkout@v4  # Ensure the code is checked out
 
       # Docker login step
       - name: Log in to Docker Hub
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2  # Ensure the code is checked out
+        uses: actions/checkout@v4  # Ensure the code is checked out
 
       # Docker login step
       - name: Log in to Docker Hub
