@@ -10,7 +10,7 @@ hides it; `tests/validate.bash` fails on it).
 | Category | Kind | Contents |
 |---|---|---|
 | `bw/` | flat (scripts at top level) | Bitwarden CLI helpers (`bw_create`, `bw_push`, `bw_clone`). |
-| `docker/` | one dir per service | 18 compose stacks: alpine, apache, cockroach, cockroach-insecure, jira-software, k6, liferay-7.2.1-ga2, liferay-7.3.5-ga6, maven, mongodb, mysql5, mysql8, nexus, nginx, nodejs, rainloop, syslog, tomcat9. Plus 3 special dirs (see below). |
+| `docker/` | one dir per service | 18 compose stacks (alpine, apache, cockroach, cockroach-insecure, jira-software, k6, liferay-7.2.1-ga2, liferay-7.3.5-ga6, maven, mongodb, mysql5, mysql8, nexus, nginx, nodejs, rainloop, syslog, tomcat9) + 3 special dirs (dock, httpd, vtiger) with no compose service. |
 | `help/` | one dir per topic | Cheatsheet printers (`help_docker`, `help_az`, ...). Plain bash, no deps. |
 | `john/` | one dir per attack | John the Ripper recipes. Aliases only defined when `john` binary exists. |
 | `utils/` | one dir per topic | ssl checks, cert helpers, aws, disk format, etc. |

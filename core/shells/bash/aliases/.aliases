@@ -2,7 +2,6 @@
 export mod_colors="$project_path"/core/shells/bash/functions/colors.bash
 export ssl_functions="$project_path"/modules/utils/ssl/functions.bash
 export certs_functions="$project_path"/modules/utils/certs/functions.bash
-source "$project_path"/core/shells/bash/functions/crlf_to_lf.bash
 # Facilities
 alias cls="clear"
 alias c="code ."

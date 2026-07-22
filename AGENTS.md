@@ -28,7 +28,7 @@ shell** and only see **exported** variables. `$project_path` is exported; never 
 | Path | What it is |
 |---|---|
 | `core/shells/bash/.bashrc` | The loader. Every new function/profile needs an if-block here. |
-| `core/shells/bash/functions/` | 8 sourced function files (`myshell.bash` is the manager UI). |
+| `core/shells/bash/functions/` | 9 function files (8 framework functions + colors helper; `myshell.bash` is the manager UI). |
 | `core/shells/bash/aliases/.aliases` | THE tracked alias file. All module aliases live here. |
 | `core/shells/bash/aliases/*.sh` | Machine-local aliases. **Git-ignored by design** — never put shared aliases there. |
 | `core/shells/bash/profiles/.*` | Dot-file profiles (.appearance, .history, .path, ...). |
