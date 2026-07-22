@@ -17,7 +17,7 @@ Read the root `AGENTS.md` first; this file adds the internals of the loader area
 | `aliases/*.sh` | Machine-local, git-ignored. Never add shared aliases here. |
 | `profiles/.*` | 9 dot-file profiles, each with an explicit loader block in `.bashrc`. |
 | `jobs/public_ip.bash` | Backgrounded at shell start by `.bashrc`. |
-| `jobs/online_users.bash` | Present but its loader line in `.bashrc` is commented out. |
+
 
 ## myshell.bash internals
 

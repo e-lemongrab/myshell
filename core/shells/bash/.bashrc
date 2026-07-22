@@ -4,8 +4,6 @@ initial_result=$(date +%s%3N)
 # Jobs
 bash "$project_path"/core/shells/bash/jobs/public_ip.bash &
 sleep 1.5
-#bash "$project_path"/core/shells/bash/jobs/online_users.bash&
-# sleep 1
 # Load functions
 if [ -f "$project_path"/core/shells/bash/functions/checks.bash ]; then
 	. "$project_path"/core/shells/bash/functions/checks.bash
@@ -65,7 +63,7 @@ if [ -f "$project_path"/core/shells/bash/profiles/.config_files ]; then
 fi
 if [ -f "$project_path"/core/shells/bash/profiles/.ssh ]; then
 	. "$project_path"/core/shells/bash/profiles/.ssh
-	fi
+fi
 # Bash time lapse ends
 final_result=$(date +%s%3N)
 elapsed_time=$((final_result - initial_result))
