@@ -1,10 +1,9 @@
 #!/bin/bash
 ## Time lapse bash loading
 initial_result=$(date +%s%3N)
-# Jobs: display the last value immediately and refresh it asynchronously.
+# Jobs: display the last value immediately and keep the refresh worker alive.
 [ -s "$HOME/public_ip.txt" ] && head -n 1 "$HOME/public_ip.txt"
-bash "$project_path"/core/shells/bash/jobs/public_ip.bash >/dev/null 2>&1 &
-disown "$!" 2>/dev/null || true
+bash "$project_path"/core/shells/bash/jobs/public_ip.bash &
 # Load functions
 if [ -f "$project_path"/core/shells/bash/functions/checks.bash ]; then
 	. "$project_path"/core/shells/bash/functions/checks.bash

@@ -6,20 +6,59 @@ cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/myshell"
 cache_file="$HOME/public_ip.txt"
 lock_dir="$cache_root/public-ip.lock"
 ttl_seconds=600
+poll_seconds=60
+lock_owned=0
 
 mkdir -p "$cache_root" || exit 1
-if [ -f "$cache_file" ]; then
-	age=$(($(date +%s) - $(stat -c %Y "$cache_file" 2>/dev/null || printf '0')))
-	[ "$age" -lt "$ttl_seconds" ] && exit 0
-fi
 
-mkdir "$lock_dir" 2>/dev/null || exit 0
-trap 'rmdir "$lock_dir" 2>/dev/null || true' EXIT
+release_lock() {
+	if [ "$lock_owned" -eq 1 ]; then
+		rmdir "$lock_dir" 2>/dev/null || true
+		lock_owned=0
+	fi
+}
 
-real_ip=$(curl --fail --silent --show-error --connect-timeout 2 --max-time 5 https://ifconfig.me/ip 2>/dev/null) || exit 0
-real_ip=${real_ip//$'\r'/}
-real_ip=${real_ip//$'\n'/}
-[ -n "$real_ip" ] || exit 0
+refresh_public_ip() {
+	local age real_ip current_line new_line temporary_file
 
-temporary_file="${cache_file}.tmp.$$"
-printf 'Public IP: %s\n' "$real_ip" >"$temporary_file" && mv "$temporary_file" "$cache_file"
+	if [ -f "$cache_file" ]; then
+		age=$(($(date +%s) - $(stat -c %Y "$cache_file" 2>/dev/null || printf '0')))
+		[ "$age" -lt "$ttl_seconds" ] && return 0
+	fi
+
+	mkdir "$lock_dir" 2>/dev/null || return 0
+	lock_owned=1
+
+	real_ip=$(curl --fail --silent --show-error --connect-timeout 2 --max-time 5 \
+		https://ifconfig.me/ip 2>/dev/null) || {
+		release_lock
+		return 0
+	}
+	real_ip=${real_ip//$'\r'/}
+	real_ip=${real_ip//$'\n'/}
+	[ -n "$real_ip" ] || {
+		release_lock
+		return 0
+	}
+
+	current_line=""
+	[ ! -f "$cache_file" ] || IFS= read -r current_line <"$cache_file"
+	new_line="Public IP: $real_ip"
+	if [ "$new_line" != "$current_line" ]; then
+		temporary_file="${cache_file}.tmp.$$"
+		printf '%s\n' "$new_line" >"$temporary_file"
+		mv "$temporary_file" "$cache_file"
+		printf '%s\n' "$new_line"
+	else
+		touch "$cache_file"
+	fi
+	release_lock
+}
+
+trap release_lock EXIT
+trap 'exit 0' HUP INT TERM
+
+while true; do
+	refresh_public_ip
+	sleep "$poll_seconds"
+done
