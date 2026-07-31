@@ -184,7 +184,10 @@ done < <(find modules/docker -type f \( -name '.Dockerfile' -o -name 'dockerfile
 
 while IFS= read -r latest_reference; do
 	fail "mutable Docker image reference: $latest_reference"
-done < <(rg -n ':latest' modules/docker --glob 'Dockerfile' --glob '*.yaml' --glob '*.yml' || true)
+done < <(
+	grep -RInE --include='Dockerfile' --include='*.yaml' --include='*.yml' \
+		':latest' modules/docker || true
+)
 
 while IFS= read -r dockerfile; do
 	context=$(cut -d/ -f1-3 <<<"$dockerfile")
@@ -231,7 +234,7 @@ printf '[9/10] CI policy\n'
 # 10. Core portability rules and an informational personal-config inventory.
 while IFS= read -r hardcoded_path; do
 	fail "hardcoded repository path in aliases: $hardcoded_path"
-done < <(rg -n '\$HOME/Documents/myshell/' core/shells/bash/aliases || true)
+done < <(grep -RInF '$HOME/Documents/myshell/' core/shells/bash/aliases || true)
 
 personal_files=(
 	core/shells/pwsh/HistoryFile.txt
