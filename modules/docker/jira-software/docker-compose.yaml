@@ -4,10 +4,10 @@ services:
     container_name: jiracero
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        JIRA_IMAGE: "atlassian/jira-software:latest"
+        JIRA_IMAGE: "atlassian/jira-software:9.12.17"
     environment:
       - ATL_PROXY_NAME=jiracero.internal
       - ATL_PROXY_PORT=80
@@ -24,10 +24,10 @@ services:
     container_name: jirauno
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        JIRA_IMAGE: "atlassian/jira-software:latest"
+        JIRA_IMAGE: "atlassian/jira-software:9.12.17"
     environment:
       - ATL_PROXY_NAME=jirauno.internal
       - ATL_PROXY_PORT=81
@@ -41,7 +41,7 @@ services:
 
 #nginx: 
 #  container_name: nginx 
-#  image: nginx:latest 
+#  image: nginx:1.30.4
 #  volumes:
 #   - ./Docker/nginx.conf:/etc/nginx/nginx.conf 
 #  depends_on: 

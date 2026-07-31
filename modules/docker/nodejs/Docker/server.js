@@ -1,7 +1,7 @@
 const http = require("http");
 
-const HOST = "localhost";
-const PORT = 8020;
+const HOST = process.env.HOST || "0.0.0.0";
+const PORT = Number(process.env.PORT || 8020);
 
 const server = http.createServer(async (req, res) => {
 console.log("Request on server received :  " + req.method + " : " + req.url);
@@ -53,5 +53,5 @@ console.log("Request on server received :  " + req.method + " : " + req.url);
 });
 
 server.listen(PORT, () => {
-  console.log(`server started on : ${HOST}  port: ${PORT}`);
+  console.log(`server started on: ${HOST} port: ${PORT}`);
 });

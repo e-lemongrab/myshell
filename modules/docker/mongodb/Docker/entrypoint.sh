@@ -1,16 +1,7 @@
 #!/bin/sh
 
-rm -rf /data/db/*
-chown -R mongouser:mongod /data/db
-mongod --bind_ip 0.0.0.0
+set -eu
 
-until mongosh --eval "print('waiting for connection')" > /dev/null 2>&1; do
-  sleep 1
-done
-
-for file in /docker-entrypoint-initdb.d/*.js; do
-  echo "Importing $file"
-  mongosh "$file"
-done
-
-#while true; do sleep 30; done
+# Data is persistent. Initialization belongs in an explicit provisioning step;
+# startup must never erase /data/db or leave initialization code unreachable.
+exec mongod --bind_ip_all

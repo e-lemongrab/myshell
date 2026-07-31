@@ -1,4 +1,5 @@
-#!/bin/bash
-crond -f -d 8
-#node /api/server.js
-#tail -f /dev/null
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+exec node /api/server.js

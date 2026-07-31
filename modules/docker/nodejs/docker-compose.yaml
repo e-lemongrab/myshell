@@ -4,10 +4,10 @@ services:
     container_name: nodejs
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        JIRA_IMAGE: "debian:bookworm-slim"
+        NODE_IMAGE: "node:20.19-bookworm-slim"
     # environment:
     #  - ATL_PROXY_NAME=jiracero.internal
     #  - ATL_PROXY_PORT=80

@@ -3,10 +3,10 @@ services:
     container_name: maven
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        IMAGE_MAVEN: "maven:latest"
+        IMAGE_MAVEN: "maven:3.9.13-eclipse-temurin-21"
     volumes:
       - maven_data:/usr/src/dependencies
     restart: always

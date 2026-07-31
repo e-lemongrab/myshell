@@ -1,6 +1,6 @@
 services:
   k6:
-    image: grafana/k6
+    image: grafana/k6:1.6.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

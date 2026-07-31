@@ -1,26 +1,62 @@
 #!/bin/bash
-curl -o ~/.vimrc https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.vimrc > /dev/null 2>&1
-curl -o ~/.tmux.conf https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.tmux.conf > /dev/null 2>&1
-curl -o ~/.inputrc https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.inputrc > /dev/null 2>&1
-curl -o ~/.gitconfig https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.gitconfig > /dev/null 2>&1
-curl -o ~/.alacritty.toml https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/home/.alacritty.toml > /dev/null 2>&1
-if ! command -v firefox &> /dev/null; then
-    :
-else
-    firefox_profiles=$(awk -F'=' '/^Path=/{print $2}' ~/.mozilla/firefox/profiles.ini)
 
-    while IFS= read -r profile; do
-        if [[ "$profile" = /* ]]; then
-            profile_dir="$profile"
-        else
-            profile_dir="$HOME/.mozilla/firefox/$profile"
-        fi
+_myshell_sync_config_files() {
+	local cache_root lock_dir stamp base_url source_path target temporary_file
+	local firefox_profiles profile profile_dir
 
-        if [[ "$profile_dir" == *"/work/"* ]]; then
-            echo "Skipping profile in work directory: $profile_dir"
-            continue
-        fi
+	command -v curl >/dev/null 2>&1 || return 0
+	cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/myshell"
+	lock_dir="$cache_root/config-files.lock"
+	stamp="$cache_root/config-files.updated"
+	base_url="https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master"
+	mkdir -p "$cache_root" || return 0
 
-        curl -o "$profile_dir/user.js" https://raw.githubusercontent.com/e-lemongrab/config_files/refs/heads/master/firefox/user.js > /dev/null 2>&1
-    done <<< "$firefox_profiles"
-fi
+	if [ -f "$stamp" ] && [ "$(($(date +%s) - $(stat -c %Y "$stamp" 2>/dev/null || printf '0')))" -lt 3600 ]; then
+		return 0
+	fi
+	mkdir "$lock_dir" 2>/dev/null || return 0
+	trap 'rmdir "$lock_dir" 2>/dev/null || true' RETURN
+
+	while IFS='|' read -r source_path target; do
+		temporary_file="${target}.myshell.$$"
+		if curl --fail --silent --show-error --location --connect-timeout 2 --max-time 10 \
+			--output "$temporary_file" "$base_url/$source_path"; then
+			mv "$temporary_file" "$target"
+		else
+			rm -f "$temporary_file"
+		fi
+	done <<EOF
+home/.vimrc|$HOME/.vimrc
+home/.tmux.conf|$HOME/.tmux.conf
+home/.inputrc|$HOME/.inputrc
+home/.gitconfig|$HOME/.gitconfig
+home/.alacritty.toml|$HOME/.alacritty.toml
+EOF
+
+	if command -v firefox >/dev/null 2>&1 && [ -r "$HOME/.mozilla/firefox/profiles.ini" ]; then
+		firefox_profiles=$(awk -F= '/^Path=/{print $2}' "$HOME/.mozilla/firefox/profiles.ini")
+		while IFS= read -r profile; do
+			[ -n "$profile" ] || continue
+			if [[ "$profile" = /* ]]; then
+				profile_dir="$profile"
+			else
+				profile_dir="$HOME/.mozilla/firefox/$profile"
+			fi
+			[[ "$profile_dir" == *"/work/"* ]] && continue
+			[ -d "$profile_dir" ] || continue
+			temporary_file="$profile_dir/user.js.myshell.$$"
+			if curl --fail --silent --show-error --location --connect-timeout 2 --max-time 10 \
+				--output "$temporary_file" "$base_url/firefox/user.js"; then
+				mv "$temporary_file" "$profile_dir/user.js"
+			else
+				rm -f "$temporary_file"
+			fi
+		done <<<"$firefox_profiles"
+	fi
+
+	touch "$stamp"
+}
+
+_myshell_sync_config_files >/dev/null 2>&1 &
+disown "$!" 2>/dev/null || true
+unset -f _myshell_sync_config_files

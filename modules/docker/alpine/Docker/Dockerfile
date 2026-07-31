@@ -1,12 +1,8 @@
-ARG DOCKER_REGISTRY_CACHE
-ARG IMAGE_ALPINE
+ARG DOCKER_REGISTRY_CACHE=docker.io
+ARG IMAGE_ALPINE=alpine:3.22.5
 FROM $DOCKER_REGISTRY_CACHE/$IMAGE_ALPINE
 EXPOSE 27017
-# System packages
-RUN echo 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/main' >> /etc/apk/repositories; \
-    echo 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/community' >> /etc/apk/repositories; \
-    apk update; \
-    apk upgrade
+
 # Entrypoint
 COPY Docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
@@ -14,5 +10,5 @@ RUN chmod +x /entrypoint.sh
 RUN adduser -s /bin/sh -h /home/mongouser -D mongouser && \
     echo "mongouser:yourpassword" | chpasswd && \
     addgroup mongouser wheel
-USER mongouser    
+USER mongouser
 ENTRYPOINT [ "/entrypoint.sh" ]

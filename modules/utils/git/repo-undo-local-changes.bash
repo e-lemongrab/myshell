@@ -1,18 +1,37 @@
-#!/bin/bash
-# Navigate to the parent directory containing all the repos
-# Create an empty array to hold the names of the directories
-changed_dirs=()
-# Loop through each directory
-for dir in */; do
-	if [ -d "$dir/.git" ]; then
-		cd "$dir" || continue
-		git reset --hard
-		# git checkout develop  # Checkout the develop branch
-		# git pull              # Pull the latest changes
-		changed_dirs+=("$dir") # Add the directory to the array
-		cd ..
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+changed_repositories=()
+for directory in */; do
+	[ -d "$directory/.git" ] || continue
+	if git -C "$directory" diff --quiet && git -C "$directory" diff --cached --quiet; then
+		continue
 	fi
+	changed_repositories+=("${directory%/}")
 done
-# Print the list of directories where changes were undone
-echo "Changes have been undone in the following directories:"
-printf '%s\n' "${changed_dirs[@]}"
+
+if [ "${#changed_repositories[@]}" -eq 0 ]; then
+	printf 'No child repositories contain local changes.\n'
+	exit 0
+fi
+
+printf 'Child repositories with tracked changes that will be reset:\n'
+for directory in "${changed_repositories[@]}"; do
+	printf '\n[%s]\n' "$directory"
+	git -C "$directory" status --short
+done
+
+printf '\nUntracked files are not removed. Type RESET ALL to continue: '
+read -r confirmation
+[ "$confirmation" = "RESET ALL" ] || {
+	printf 'Cancelled.\n'
+	exit 0
+}
+
+for directory in "${changed_repositories[@]}"; do
+	git -C "$directory" reset --hard
+done
+
+printf 'Changes were reset in:\n'
+printf '  %s\n' "${changed_repositories[@]}"

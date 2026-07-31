@@ -4,7 +4,7 @@ services:
     container_name: cockroach0
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
         IMATGE_BASEDEDADES: "cockroachdb/cockroach:v22.1.1"
@@ -28,7 +28,7 @@ services:
     container_name: cockroach1
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
         IMATGE_BASEDEDADES: "cockroachdb/cockroach:v22.1.1"
@@ -49,7 +49,7 @@ services:
     container_name: cockroach2
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
         IMATGE_BASEDEDADES: "cockroachdb/cockroach:v22.1.1"

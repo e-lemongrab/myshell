@@ -1,5 +1,5 @@
-ARG  DOCKER_REGISTRY_CACHE
-ARG IMAGE_MAVEN
+ARG DOCKER_REGISTRY_CACHE=docker.io
+ARG IMAGE_MAVEN=maven:3.9.13-eclipse-temurin-21
 FROM $DOCKER_REGISTRY_CACHE/$IMAGE_MAVEN
 RUN mkdir -p /usr/src/dependencies
 RUN mkdir -p ~/.m2/

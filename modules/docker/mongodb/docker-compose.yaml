@@ -1,18 +1,26 @@
 services:
   mongodb:
-    image: mongo
+    image: myshell/mongodb:8.0.28
     container_name: mongodb
     build:
       context: '.'
-      dockerfile: ./Docker/dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        IMAGE_OPENSUSELEAP: "opensuse/leap:latest"
+        IMAGE_OPENSUSELEAP: "opensuse/leap:15.6"
+        MONGODB_VERSION: "8.0.28"
+        MONGODB_SERIES: "8.0"
     restart: always
     volumes:
       - mongo_data:/data/db
       - ./Docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
       - 27017:27017
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 volumes:
   mongo_data: {}

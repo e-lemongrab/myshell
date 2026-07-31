@@ -3,16 +3,12 @@
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 
-export GOPATH=~/go
+export GOPATH="$HOME/go"
 
+if command -v pyenv >/dev/null 2>&1; then
+	eval "$(pyenv init --path)" >/dev/null 2>&1
+	eval "$(pyenv init -)" >/dev/null 2>&1
+fi
 
-
-
-#
-command -v pyenv > /dev/null 2>&1 && eval "$(pyenv init --path)" > /dev/null 2>&1
-command -v pyenv > /dev/null 2>&1 && eval "$(pyenv init -)" > /dev/null 2>&1
-
-#eval "$(pyenv virtualenv-init -)"
-
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-#
+# eval "$(pyenv virtualenv-init -)"
+[ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"

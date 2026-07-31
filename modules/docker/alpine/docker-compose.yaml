@@ -1,11 +1,11 @@
 services:
   alpine:
-    image: alpine
+    image: myshell/alpine:3.22.5
     container_name: alpine
     build:
       context: '.'
-      dockerfile: ./Docker/dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        IMAGE_ALPINE: "alpine:latest"
+        IMAGE_ALPINE: "alpine:3.22.5"
     restart: always
