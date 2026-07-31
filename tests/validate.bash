@@ -150,6 +150,13 @@ TERM=xterm MY_SHELL_ENV_DIR="$temporary_root/interactive" project_path="$root" \
 if grep -qF 'exec "$SHELL"' README.md; then
 	fail 'README uses a non-login exec that bypasses .bash_profile'
 fi
+grep -q 'public_ip\.bash.*&$' core/shells/bash/.bashrc ||
+	fail "public IP refresh is not launched as a background job"
+grep -q '^while true; do$' core/shells/bash/jobs/public_ip.bash ||
+	fail "public IP refresh is not persistent"
+if grep -q 'disown' core/shells/bash/.bashrc; then
+	fail "persistent shell job is removed from the job table"
+fi
 printf '[6/10] framework smoke tests (%d module commands)\n' "$command_count"
 
 # 7. Validate YAML and every Compose model without starting containers.

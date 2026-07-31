@@ -193,7 +193,7 @@ Examples include:
 
 The public-IP refresh, `config_files` synchronization, SSH agent setup, and AWS prompt identity lookup remain enabled by default:
 
-- public IP refresh is asynchronous, singleton, and cached for 10 minutes
+- public IP refresh remains a persistent shell job; a shared cache and lock limit the external request to once every 10 minutes across terminals
 - companion configuration synchronization is asynchronous, atomic, and cached for one hour
 - a valid SSH agent is reused instead of starting one per terminal
 - `aws sts get-caller-identity` runs at most once per profile every five minutes and only supplies the role/session shown in the prompt
