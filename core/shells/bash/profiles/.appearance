@@ -58,7 +58,14 @@ unset aws_cache_root aws_cache_key aws_cache_file aws_cache_tmp identity_arn ide
 
 ## Color and appearance
 # PS1 - prompt
-OS_RELEASE=$(sed -n 's/^PRETTY_NAME="\\(.*\\)"/\\1/p' /etc/os-release)
+OS_RELEASE=$(
+	if [ -r /etc/os-release ]; then
+		. /etc/os-release
+		printf '%s' "${PRETTY_NAME:-${NAME:-}}"
+	else
+		uname -s
+	fi
+)
 color_prompt=yes
 if [ "$color_prompt" = yes ]; then
     PS1='\n\[\033[01;40m\]┌──${debian_chroot:+($debian_chroot)}\[\033[01;33m\]\u@\h:\w$\[\033[01;40m\]\[\033[01;91m\]$(parse_git_branch)\[\033[00m\]\n\[\033[01;40m\]│\[\033[00m\] $(date +%H:%M:%S) | Jobs: \j | $OS_RELEASE | $(basename $SHELL) \V \
