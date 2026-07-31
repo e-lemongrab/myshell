@@ -157,6 +157,16 @@ grep -q '^while true; do$' core/shells/bash/jobs/public_ip.bash ||
 if grep -q 'disown' core/shells/bash/.bashrc; then
 	fail "persistent shell job is removed from the job table"
 fi
+expected_os=$(
+	. /etc/os-release
+	printf '%s' "${PRETTY_NAME:-${NAME:-}}"
+)
+actual_os=$(AWS_PROFILE= bash --noprofile --norc -c '
+	. core/shells/bash/profiles/.appearance
+	printf "%s" "$OS_RELEASE"
+')
+[ "$actual_os" = "$expected_os" ] ||
+	fail "prompt OS name does not match /etc/os-release PRETTY_NAME"
 printf '[6/10] framework smoke tests (%d module commands)\n' "$command_count"
 
 # 7. Validate YAML and every Compose model without starting containers.
