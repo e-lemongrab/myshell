@@ -1,5 +1,5 @@
-ARG DOCKER_REGISTRY_CACHE
-ARG IMATGE_APLICACIO
+ARG DOCKER_REGISTRY_CACHE=docker.io
+ARG IMATGE_APLICACIO=liferay/portal:7.3.5-ga6
 FROM $DOCKER_REGISTRY_CACHE/$IMATGE_APLICACIO
 EXPOSE 8080
 #-------------------------------------------------
@@ -12,7 +12,7 @@ COPY Docker/basa-docker-entrypoint.bash /basa-docker-entrypoint.bash
 #----------------Configuracions imatge------------
 COPY Docker/PreparaImatge.bash /
 COPY Docker/setenv.bash /opt/liferay/tomcat/bin/setenv.bash
-COPY Docker/catalina.sh /opt/liferay/tomcat/bin/catalina.sh
+COPY Docker/catalina.bash /opt/liferay/tomcat/bin/catalina.sh
 COPY Docker/portal-log4j-ext.xml /opt/liferay/tomcat/webapps/ROOT/WEB-INF/classes/META-INF/portal-log4j-ext.xml
 COPY Docker/portal-ext.properties /opt/liferay
 USER root

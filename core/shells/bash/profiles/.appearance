@@ -15,29 +15,50 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-#Check if empty
-if [ -z "$AWS_PROFILE" ]
-then
-    #If empty, does nothing
-    :
-else
-    #Check if sso session or not
-    if sed -n "/\[profile $AWS_PROFILE\]/,/^\[/p" ~/.aws/config | sed '$d' | grep -q "sso_session"; then
-        #echo "It's sso profile"
-        role_arn=$(aws sts get-caller-identity | grep "Arn" | awk -F'/' '{print $2}')
-        mfa_serial=$(aws sts get-caller-identity | grep "Arn" | awk -F'/' '{print $3}')
-    else
-        #echo "Not a sso profile"
-        role_arn=$(aws sts get-caller-identity | grep "Arn" | awk -F'/' '{print $2}')
-        mfa_serial=$(sed -n "/\[profile $AWS_PROFILE\]/,/^\[/p" ~/.aws/config | sed '$d' | grep mfa_serial | awk -F'/' '{print $NF}')
-    fi
-    export AWS_ROLE="$role_arn"
+# Resolve the AWS identity once and cache it briefly. This information is only
+# used to decorate the prompt; a failed or expired login must not block startup.
+role_arn=""
+mfa_serial=""
+if [ -n "${AWS_PROFILE:-}" ] && command -v aws >/dev/null 2>&1; then
+	aws_cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/myshell"
+	aws_cache_key=$(printf '%s' "$AWS_PROFILE" | tr -c '[:alnum:]_.-' '_')
+	aws_cache_file="$aws_cache_root/aws-identity-$aws_cache_key"
+	identity_arn=""
+	mkdir -p "$aws_cache_root"
+
+	if [ -f "$aws_cache_file" ] &&
+		[ "$(($(date +%s) - $(stat -c %Y "$aws_cache_file" 2>/dev/null || printf '0')))" -lt 300 ]; then
+		IFS= read -r identity_arn <"$aws_cache_file"
+	else
+		identity_arn=$(aws sts get-caller-identity --query Arn --output text 2>/dev/null) || identity_arn=""
+		if [ -n "$identity_arn" ]; then
+			aws_cache_tmp="${aws_cache_file}.tmp.$$"
+			printf '%s\n' "$identity_arn" >"$aws_cache_tmp"
+			chmod 600 "$aws_cache_tmp"
+			mv "$aws_cache_tmp" "$aws_cache_file"
+		fi
+	fi
+
+	if [ -n "$identity_arn" ]; then
+		IFS=/ read -r _ role_arn identity_session <<<"$identity_arn"
+		aws_profile_block=""
+		if [ -r "$HOME/.aws/config" ]; then
+			aws_profile_block=$(sed -n "/^\[profile $AWS_PROFILE\]$/,/^\[/p" "$HOME/.aws/config")
+		fi
+		if grep -q "sso_session" <<<"$aws_profile_block"; then
+			mfa_serial="$identity_session"
+		else
+			mfa_serial=$(awk -F/ '/^[[:space:]]*mfa_serial[[:space:]]*=/{print $NF; exit}' <<<"$aws_profile_block")
+		fi
+	fi
+	export AWS_ROLE="$role_arn"
 fi
+unset aws_cache_root aws_cache_key aws_cache_file aws_cache_tmp identity_arn identity_session aws_profile_block
 
 
 ## Color and appearance
 # PS1 - prompt
-OS_RELEASE=$( grep PRETTY_NAME /etc/os-release  | grep -o -P '(?<=").*(?=")'  )
+OS_RELEASE=$(sed -n 's/^PRETTY_NAME="\\(.*\\)"/\\1/p' /etc/os-release)
 color_prompt=yes
 if [ "$color_prompt" = yes ]; then
     PS1='\n\[\033[01;40m\]┌──${debian_chroot:+($debian_chroot)}\[\033[01;33m\]\u@\h:\w$\[\033[01;40m\]\[\033[01;91m\]$(parse_git_branch)\[\033[00m\]\n\[\033[01;40m\]│\[\033[00m\] $(date +%H:%M:%S) | Jobs: \j | $OS_RELEASE | $(basename $SHELL) \V \

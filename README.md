@@ -38,13 +38,15 @@ This includes:
 - jobs
 
 ### Profiles
+
 Profiles are optional environment components loaded from `core/shells/bash/profiles/`.
 
 Profiles are part of the framework core model. They are used for shell environment setup, bootstrap behavior, and managed configuration deployment.
 
-    Profile are opt-in through explicit loader blocks in `.bashrc`.
+Every profile is enabled on a new installation to preserve the complete default environment. Its state can then be changed explicitly with `myshell`.
 
-    ### Modules
+### Modules
+
 Modules are operational tooling components. They expose commands and workflows on top of the stable user-environment base provided by the framework.
 
 Modules are part of the core identity of `myshell`, not an afterthought.
@@ -71,7 +73,8 @@ When a component is disabled, it stops being managed.
 This means:
 - active managed components are expected to follow framework-defined behavior
 - disabled components are outside the authority of the framework
-- activation state is explicit and visible through the corresponding loader blocks
+- activation state is explicit and visible through `myshell status`
+- a state change takes effect after reloading or opening the shell
 
 ## Stability model
 
@@ -86,14 +89,15 @@ What may vary:
 
 ## Activation model
 
-The framework is designed around explicit, visible activation.
+The framework is designed around explicit, visible activation state.
 
 The expected user experience is:
 - load a predefined environment
+- start with every module and profile enabled, including the base aliases such as `cls`
 - enable or disable explicit pieces of that environment
 - use operational modules on top of a stable base
 
-This is an opt-in modular system, not a hidden auto-magic bootstrap.
+State is stored with complete module IDs such as `help/git` and `utils/git`, so modules with the same basename do not collide. Existing basename-only state is migrated automatically.
 
 ## Why Bash-first matters
 
@@ -141,7 +145,22 @@ exec -l "$SHELL"
 
 After that:
 - run `checks` to list compatibility information
-- run `myshell` to view available commands
+- run `myshell status` to inspect the active environment
+- run `myshell list` to view module commands
+- run `myshell` for the interactive manager
+
+The non-interactive state commands are:
+
+```bash
+myshell enable help/git
+myshell disable help/git
+myshell profile-enable .completion
+myshell profile-disable .completion
+reload_shell
+# Equivalent: exec -l "$SHELL"
+```
+
+All components are enabled if no prior state exists. A disabled module no longer loads its aliases on the next shell. Base aliases that are not tied to an operational module remain available.
 
 ### PowerShell
 
@@ -157,7 +176,7 @@ If you want to use the PowerShell profile from Windows:
 
 ## Profiles and modules
 
-`myshell` loads optional Bash components from `core/shells/bash/profiles/` through explicit blocks in `core/shells/bash/.bashrc`.
+`myshell` loads enabled Bash components from `core/shells/bash/profiles/` in a stable order.
 
 ### Profiles currently loaded by default blocks in `.bashrc`
 
@@ -172,6 +191,13 @@ Examples include:
 - `.config_files`
 - `.ssh`
 
+The public-IP refresh, `config_files` synchronization, SSH agent setup, and AWS prompt identity lookup remain enabled by default:
+
+- public IP refresh is asynchronous, singleton, and cached for 10 minutes
+- companion configuration synchronization is asynchronous, atomic, and cached for one hour
+- a valid SSH agent is reused instead of starting one per terminal
+- `aws sts get-caller-identity` runs at most once per profile every five minutes and only supplies the role/session shown in the prompt
+
 ## Companion repository: `config_files`
 
 `config_files` is the official companion repository of `myshell`.
@@ -181,6 +207,45 @@ Within the framework model:
 - `config_files` is the managed external source of truth for supported configuration artifacts
 
 This relationship is part of the intended architecture of the framework.
+
+## Operational safety
+
+Commands that erase broad local state show a preview and require an explicit confirmation. This applies to Docker cleanup, child-repository hard resets, Terraform reinitialization, Git hard reset, and disk formatting.
+
+The ext4 formatter excludes every physical disk backing `/`, refuses devices with mounted descendants, shows the selected layout, and requires the exact device path before writing. It also supports device names that require a `p1` suffix, such as NVMe and MMC devices.
+
+The repository does not provide or load a VPN alias; VPN tooling is managed outside this project.
+
+## Docker baseline
+
+Docker build definitions use a single canonical `Dockerfile` per module. Compose references, workflow references, `COPY` sources, and build contexts are checked by `tests/validate.bash`.
+
+Base images now use explicit version tags instead of floating `latest` tags. These versions form the repository baseline; changing one is a compatibility decision and should be followed by a build and service-level smoke test. The publish workflow builds only `linux/amd64` for the custom MongoDB image because its configured MongoDB package repository is architecture-specific.
+
+The MySQL 5, MySQL 8, MongoDB, and Node examples include health checks. MongoDB startup preserves `/data/db`; initialization and destructive reset are deliberately separate concerns.
+
+Credentials committed in the example Compose and database configuration files are dummy values for local execution. They are not production or staging credentials.
+
+## Personal configuration inventory
+
+The repository intentionally still contains user-specific or environment-specific material:
+
+- PowerShell aliases/history under `core/shells/pwsh/`
+- SSH/Ansible inventory, an authorized public key, and local user-management settings under `modules/utils/user_ssh/`
+- local host lists in `modules/utils/user_ssh/hosts.txt` and `hosts2.txt`
+- workstation-specific paths in PowerShell helpers
+
+These files were reported, not generalized or removed. Review them before sharing the repository or applying the configuration on another workstation.
+
+## Validation
+
+Run the same validation gate used by CI:
+
+```bash
+bash tests/validate.bash
+```
+
+It checks shell syntax, ShellCheck findings, loader and alias targets, activation defaults and migration, the interactive `cls` case, YAML/Compose models, Docker build inputs and version policy, and immutable GitHub Action references.
 
 ## Extension model
 

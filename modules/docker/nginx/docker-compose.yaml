@@ -4,9 +4,9 @@ services:
     container_name: nginx
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
-        NGINX_IMAGE: "nginx:latest"
+        NGINX_IMAGE: "nginx:1.30.4"
     ports:
       - "80:80"

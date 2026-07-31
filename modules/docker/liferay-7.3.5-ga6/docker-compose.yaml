@@ -1,6 +1,6 @@
 services:
   manteniment_2:
-    image: alpine
+    image: alpine:3.22.5
     container_name: manteniment_2
     volumes:
       - ./Docker/logs:/tmp
@@ -13,7 +13,7 @@ services:
       - manteniment_2
     build:
       context: '.'
-      dockerfile: ./Docker/.Dockerfile
+      dockerfile: ./Docker/Dockerfile
       args:
         DOCKER_REGISTRY_CACHE: "docker.io"
         IMATGE_APLICACIO: "liferay/portal:7.3.5-ga6"
@@ -35,7 +35,7 @@ services:
       #JPDA_TRANSPORT: dt_socket
       UMASK: 0022
   logs_liferay7.3:
-    image: httpd
+    image: httpd:2.4.68-trixie
     container_name: sistemes_logs_liferay7.3
     restart: always
     volumes:

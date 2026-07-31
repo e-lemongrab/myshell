@@ -1,10 +1,39 @@
 #!/bin/bash
-# SSH
-eval `ssh-agent -s` >/dev/null 1>&2
-for file in ~/.ssh/*; do
-    if file "$file" | grep -q "OpenSSH private key"
-    then
-        ssh-add $file >/dev/null 1>&2
-    fi
-done
-ssh-add -l -E sha256 >/dev/null 1>&2
+
+_myshell_ssh_agent_available() {
+	ssh-add -l >/dev/null 2>&1
+	case "$?" in
+	0 | 1) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+if command -v ssh-agent >/dev/null 2>&1 && command -v ssh-add >/dev/null 2>&1; then
+	ssh_state_dir="${XDG_RUNTIME_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/myshell"
+	ssh_agent_file="$ssh_state_dir/ssh-agent.env"
+	mkdir -p "$ssh_state_dir"
+	chmod 700 "$ssh_state_dir"
+
+	if ! _myshell_ssh_agent_available && [ -r "$ssh_agent_file" ]; then
+		. "$ssh_agent_file"
+	fi
+
+	if ! _myshell_ssh_agent_available; then
+		ssh_agent_tmp="${ssh_agent_file}.tmp.$$"
+		ssh-agent -s | sed '/^echo /d' >"$ssh_agent_tmp"
+		chmod 600 "$ssh_agent_tmp"
+		mv "$ssh_agent_tmp" "$ssh_agent_file"
+		. "$ssh_agent_file"
+	fi
+
+	if ! ssh-add -l >/dev/null 2>&1; then
+		for key_file in "$HOME"/.ssh/*; do
+			[ -f "$key_file" ] || continue
+			file "$key_file" | grep -q "OpenSSH private key" || continue
+			ssh-add "$key_file"
+		done
+	fi
+fi
+
+unset ssh_state_dir ssh_agent_file ssh_agent_tmp key_file
+unset -f _myshell_ssh_agent_available

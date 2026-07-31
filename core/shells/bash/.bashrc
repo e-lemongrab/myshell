@@ -1,9 +1,10 @@
 #!/bin/bash
 ## Time lapse bash loading
 initial_result=$(date +%s%3N)
-# Jobs
-bash "$project_path"/core/shells/bash/jobs/public_ip.bash &
-sleep 1.5
+# Jobs: display the last value immediately and refresh it asynchronously.
+[ -s "$HOME/public_ip.txt" ] && head -n 1 "$HOME/public_ip.txt"
+bash "$project_path"/core/shells/bash/jobs/public_ip.bash >/dev/null 2>&1 &
+disown "$!" 2>/dev/null || true
 # Load functions
 if [ -f "$project_path"/core/shells/bash/functions/checks.bash ]; then
 	. "$project_path"/core/shells/bash/functions/checks.bash
@@ -25,6 +26,7 @@ if [ -f "$project_path"/core/shells/bash/functions/hadolint.bash ]; then
 fi
 if [ -f "$project_path"/core/shells/bash/functions/myshell.bash ]; then
 	. "$project_path"/core/shells/bash/functions/myshell.bash
+	myshell_state_init
 fi
 if [ -f "$project_path"/core/shells/bash/functions/shellcheck.bash ]; then
 	. "$project_path"/core/shells/bash/functions/shellcheck.bash
@@ -36,34 +38,14 @@ if [ -d "$dir" ] && [ "$(ls -A "$dir")" ]; then
     [ -f "$f" ] && . "$f"
   done
 fi
-# Load profiles
-if [ -f "$project_path"/core/shells/bash/profiles/.git-configs ]; then
-	. "$project_path"/core/shells/bash/profiles/.git-configs
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.appearance ]; then
-	. "$project_path"/core/shells/bash/profiles/.appearance
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.completion ]; then
-	. "$project_path"/core/shells/bash/profiles/.completion
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.history ]; then
-	. "$project_path"/core/shells/bash/profiles/.history
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.path ]; then
-	. "$project_path"/core/shells/bash/profiles/.path
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.pwsh ]; then
-	. "$project_path"/core/shells/bash/profiles/.pwsh
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.software ]; then
-	. "$project_path"/core/shells/bash/profiles/.software
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.config_files ]; then
-	. "$project_path"/core/shells/bash/profiles/.config_files
-fi
-if [ -f "$project_path"/core/shells/bash/profiles/.ssh ]; then
-	. "$project_path"/core/shells/bash/profiles/.ssh
-fi
+# Load enabled profiles in their established order.
+for profile_name in .git-configs .appearance .completion .history .path .pwsh .software .config_files .ssh; do
+	profile_file="$project_path/core/shells/bash/profiles/$profile_name"
+	if [ -f "$profile_file" ] && myshell_profile_enabled "$profile_name"; then
+		. "$profile_file"
+	fi
+done
+unset profile_name profile_file
 # Bash time lapse ends
 final_result=$(date +%s%3N)
 elapsed_time=$((final_result - initial_result))

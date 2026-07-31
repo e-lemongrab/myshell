@@ -1,17 +1,19 @@
-#!/bin/bash
-#-----------------------------------------------------------------
-#Còpia arxius configuració
-cp /tmp/configs/$ENVIRONMENT/db.cnf /etc/mysql/conf.d/db.cnf -f
-cp /tmp/configs/General/general.cnf /etc/mysql/conf.d/general.cnf -f
-#Còpia certificats i permisos
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cp -f "/tmp/configs/$ENVIRONMENT/db.cnf" /etc/mysql/conf.d/db.cnf
+cp -f /tmp/configs/General/general.cnf /etc/mysql/conf.d/general.cnf
+chmod 755 /etc/mysql/conf.d
+chmod 644 /etc/mysql/conf.d/db.cnf /etc/mysql/conf.d/general.cnf
+
 mkdir -p /etc/mysql/ssl
-cp /tmp/configs/$ENVIRONMENT/ca.crt /etc/mysql/ssl/
-cp /tmp/configs/$ENVIRONMENT/cert.crt /etc/mysql/ssl/
-cp /tmp/configs/$ENVIRONMENT/key.key /etc/mysql/ssl/
-chown -R mysql:mysql /etc/mysql/ssl/
-chmod -R 700 /etc/mysql/ssl/
-#Permisos per servei
-chown -R mysql:mysql /var/run/mysqld/
-chmod -R 700 /var/run/mysqld/
-#Inici servei
-mysqld
+if [ -f "/tmp/configs/$ENVIRONMENT/ca.crt" ]; then
+	cp -f "/tmp/configs/$ENVIRONMENT/ca.crt" "/tmp/configs/$ENVIRONMENT/cert.crt" \
+		"/tmp/configs/$ENVIRONMENT/key.key" /etc/mysql/ssl/
+	chown -R mysql:mysql /etc/mysql/ssl
+	chmod 700 /etc/mysql/ssl
+	chmod 600 /etc/mysql/ssl/*
+fi
+
+exec docker-entrypoint.sh mysqld

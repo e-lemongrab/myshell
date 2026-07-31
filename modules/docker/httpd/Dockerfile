@@ -1,10 +1,11 @@
 #FROM rancher-sic-local.$domain_stg_ba:8090/bcnact/tomcat/8-jdk8
-FROM httpd:latest
+FROM httpd:2.4.68-trixie
 EXPOSE 80
 #EXPOSE 443
 ###########             SISTEMA
-RUN apt update
-RUN apt install nano dos2unix -y
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y dos2unix \
+    && rm -rf /var/lib/apt/lists/*
 ###########             COPIES
 COPY entrypoint.bash /
 #COPY /prestashop/* /tmp/

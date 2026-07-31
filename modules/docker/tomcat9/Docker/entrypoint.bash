@@ -1,12 +1,18 @@
 #!/bin/bash
+
+set -euo pipefail
+
 #INFO
 export RELEASE=0.0.0
 export APPLICATION_VERSION=testing
 export BRANCA=testing
 export NAPLICACIO=testing
-export MOMENTINICI=$(date +"%d-%m-%Y--%H:%M")
-mkdir /usr/local/tomcat/webapps/info
-echo $NAPLICACIO de $BCNACT_ENTORN Compilacio $BRANCA $RELEASE Iniciat el $MOMENTINICI >/usr/local/tomcat/webapps/info/index.html
+MOMENTINICI=$(date +"%d-%m-%Y--%H:%M")
+export MOMENTINICI
+mkdir -p /usr/local/tomcat/webapps/info
+printf '%s de %s Compilacio %s %s Iniciat el %s\n' \
+	"$NAPLICACIO" "$BCNACT_ENTORN" "$BRANCA" "$RELEASE" "$MOMENTINICI" \
+	>/usr/local/tomcat/webapps/info/index.html
 #CONFIGURACIO KEYSTORE
 keytool -genkey -noprompt \
 	-alias AP000 \
@@ -27,14 +33,11 @@ keytool -certreq -noprompt \
 	-storepass 1nternet! \
 	-keypass 1nternet!
 
-#SETTINGS
-#cp -f /tmp/entorns/$BCNACT_ENTORN/index.html /usr/local/tomcat/webapps/ROOT/index.html
-#cp -f /tmp/entorns/$BCNACT_ENTORN/context.xml /usr/local/tomcat/conf/context.xml
-#cp -f /tmp/entorns/$BCNACT_ENTORN/web.xml /usr/local/tomcat/conf/
-cp -f /tmp/entorns/$BCNACT_ENTORN/catalina.sh /usr/local/tomcat/bin/
-#cp -f /tmp/entorns/$BCNACT_ENTORN/config.properties /usr/local/tomcat/webapps/piu/WEB-INF/classes/config/
-#cp -f /tmp/entorns/$BCNACT_ENTORN/log4j.properties /usr/local/tomcat/webapps/piu/WEB-INF/classes/log4j/
+cp -f "/tmp/entorns/$BCNACT_ENTORN/catalina.bash" /usr/local/tomcat/bin/catalina.sh
 
-#INICI SERVEI AMB SAMPLE
-/usr/local/tomcat/bin/catalina.sh run
-rm -rf /usr/local/tomcat/webapps/*.war
+# Optional local payloads stay outside the image and can be supplied by the
+# existing /tmp/volum bind mount.
+[ ! -f /tmp/volum/server.xml ] || cp -f /tmp/volum/server.xml /usr/local/tomcat/conf/server.xml
+[ ! -f /tmp/volum/sample.war ] || cp -f /tmp/volum/sample.war /usr/local/tomcat/webapps/sample.war
+
+exec /usr/local/tomcat/bin/catalina.sh run

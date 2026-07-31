@@ -1,10 +1,11 @@
 #FROM rancher-sic-local.$domain_stg_ba:8090/bcnact/tomcat/8-jdk8
-FROM debian:buster-slim
+FROM debian:bookworm-20260623-slim
 EXPOSE 80
 #EXPOSE 443
 ###########             SISTEMA
-RUN apt update
-RUN apt install nano dos2unix unzip apache2 -y
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y apache2 dos2unix unzip \
+    && rm -rf /var/lib/apt/lists/*
 ###########             COPIES
 COPY /php/ /tmp/php
 COPY entrypoint.bash /

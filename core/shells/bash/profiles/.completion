@@ -1,15 +1,15 @@
 #!/bin/bash
 # Completion OCI cloud commands
-[[ -e "/home/$USER/lib/oracle-cli/lib/python3.11/site-packages/oci_cli/bin/oci_autocomplete.bash" ]] && source "/home/$USER/lib/oracle-cli/lib/python3.11/site-packages/oci_cli/bin/oci_autocomplete.bash"
+[[ -e "$HOME/lib/oracle-cli/lib/python3.11/site-packages/oci_cli/bin/oci_autocomplete.bash" ]] && source "$HOME/lib/oracle-cli/lib/python3.11/site-packages/oci_cli/bin/oci_autocomplete.bash"
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/home/'$USER'/google-cloud-sdk/completion.bash.inc' ]; then . '/home/'$USER'/google-cloud-sdk/completion.bash.inc'; fi
+if [ -f "$HOME/google-cloud-sdk/completion.bash.inc" ]; then . "$HOME/google-cloud-sdk/completion.bash.inc"; fi
 
 # Enable Terraform completion
-complete -C terraform terraform
+command -v terraform >/dev/null 2>&1 && complete -C terraform terraform
 
 # aws cli
-complete -C aws_completer aws
+command -v aws_completer >/dev/null 2>&1 && complete -C aws_completer aws
 
 # Enable bash completion
 if ! shopt -oq posix; then
@@ -21,18 +21,35 @@ if ! shopt -oq posix; then
 fi
 
 # Enable git completion
-if ! shopt -oq posix; then
-    if [ -f ~/git-completion.bash ]; then
-        . ~/git-completion.bash
-    else
-        git_verion=$(git version | awk '{print $3}')
-        curl -o ~/git-completion.bash https://raw.githubusercontent.com/git/git/v$git_verion/contrib/completion/git-completion.bash > /dev/null 2>&1
-        . ~/git-completion.bash
-    fi
+if ! shopt -oq posix && command -v git >/dev/null 2>&1; then
+	if [ ! -s "$HOME/git-completion.bash" ] && command -v curl >/dev/null 2>&1; then
+		git_version=$(git version | awk '{print $3}')
+		git_completion_tmp="$HOME/git-completion.bash.tmp.$$"
+		if curl --fail --silent --show-error --location --connect-timeout 2 --max-time 8 \
+			--output "$git_completion_tmp" \
+			"https://raw.githubusercontent.com/git/git/v$git_version/contrib/completion/git-completion.bash"; then
+			mv "$git_completion_tmp" "$HOME/git-completion.bash"
+		else
+			rm -f "$git_completion_tmp"
+		fi
+	fi
+	[ -s "$HOME/git-completion.bash" ] && . "$HOME/git-completion.bash"
 fi
 
 ## Kubectl bash autocompletion
-if [ -e /usr/share/bash-completion/bash_completion ]; then
-    source /usr/share/bash-completion/bash_completion > /dev/null 2>&1
-    command -v kubectl > /dev/null 2>&1 && source <(kubectl completion bash) > /dev/null 2>&1
+if command -v kubectl >/dev/null 2>&1; then
+	completion_cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/myshell"
+	kubectl_completion="$completion_cache_dir/kubectl-completion.bash"
+	mkdir -p "$completion_cache_dir"
+	if [ ! -s "$kubectl_completion" ] ||
+		[ "$(($(date +%s) - $(stat -c %Y "$kubectl_completion" 2>/dev/null || printf '0')))" -ge 86400 ]; then
+		kubectl_completion_tmp="${kubectl_completion}.tmp.$$"
+		if kubectl completion bash >"$kubectl_completion_tmp" 2>/dev/null; then
+			mv "$kubectl_completion_tmp" "$kubectl_completion"
+		else
+			rm -f "$kubectl_completion_tmp"
+		fi
+	fi
+	[ -s "$kubectl_completion" ] && . "$kubectl_completion"
 fi
+unset git_version git_completion_tmp completion_cache_dir kubectl_completion kubectl_completion_tmp

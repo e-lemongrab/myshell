@@ -19,7 +19,7 @@ spec:
         fsGroup: 1000
         runAsUser: 1000
       containers:
-        - image: mongo:latest
+        - image: mongo:8.0.28
           imagePullPolicy: Always
           name: challenge-db
           env:

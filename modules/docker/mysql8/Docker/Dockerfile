@@ -1,18 +1,16 @@
-ARG  DOCKER_REGISTRY_CACHE
-ARG IMAGE_MYSQL8
+ARG DOCKER_REGISTRY_CACHE=docker.io
+ARG IMAGE_MYSQL8=mysql:8.4.4
 FROM $DOCKER_REGISTRY_CACHE/$IMAGE_MYSQL8
-#Port
+
 EXPOSE 3306
-#System
-RUN microdnf update -y
-RUN microdnf upgrade -y
-RUN microdnf install dos2unix -y
-RUN cp -r -f /usr/share/zoneinfo/Europe/Madrid /etc/localtime && ls -la /etc/localtime
-#BASA_DOCKER
+
+RUN microdnf install dos2unix -y \
+    && microdnf clean all \
+    && cp -f /usr/share/zoneinfo/Europe/Madrid /etc/localtime
+
 COPY Docker/custom-docker-entrypoint.bash /custom-docker-entrypoint.bash
-RUN dos2unix /custom-docker-entrypoint.bash
 COPY configs /tmp/configs
-RUN dos2unix /custom-docker-entrypoint.bash && dos2unix /tmp/configs/**/*.* && chmod +x /custom-docker-entrypoint.bash
+RUN dos2unix /custom-docker-entrypoint.bash \
+    && find /tmp/configs -type f -exec dos2unix {} + \
+    && chmod +x /custom-docker-entrypoint.bash
 CMD [ "/custom-docker-entrypoint.bash" ]
-# ENTRYPOINT ["docker-entrypoint.sh"]
-# CMD ["mysqld"]

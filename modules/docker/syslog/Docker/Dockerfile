@@ -1,11 +1,9 @@
-ARG DOCKER_REGISTRY_CACHE
-ARG IMATGE_APLICACIO
+ARG DOCKER_REGISTRY_CACHE=docker.io
+ARG IMATGE_APLICACIO=debian:bookworm-20260623-slim
 FROM $DOCKER_REGISTRY_CACHE/$IMATGE_APLICACIO
-#RUN apk update && apk add git dos2unix curl nano -f
-#RUN apt update; apt upgrade -y
-RUN apt install crontab -y
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y cron \
+    && rm -rf /var/lib/apt/lists/*
 COPY Docker/basa-docker-entrypoint.bash /
-#COPY Docker/root /etc/crontabs/root
-#RUN dos2unix /basa-docker-entrypoint.bash
-#RUN dos2unix /etc/crontabs/root
+RUN chmod +x /basa-docker-entrypoint.bash
 ENTRYPOINT ["/basa-docker-entrypoint.bash"]

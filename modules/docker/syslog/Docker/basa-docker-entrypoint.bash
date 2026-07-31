@@ -1,4 +1,5 @@
-#!/bin/bash
-#!/bin/sh
-#crond -f -d 8
-tail -f /dev/null
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+exec cron -f
