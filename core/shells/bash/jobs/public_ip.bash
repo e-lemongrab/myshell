@@ -5,8 +5,13 @@ set -u
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/myshell"
 cache_file="$HOME/public_ip.txt"
 lock_dir="$cache_root/public-ip.lock"
-ttl_seconds=600
-poll_seconds=60
+# Detection cadence: an actual ifconfig.me fetch only fires when the cache is
+# older than ttl_seconds, so this is what gates how fast an IP/VPN change is
+# noticed (~30s here). poll_seconds must stay <= ttl_seconds or it adds lag.
+# The dir-lock + mtime gate keep it to ~one external request per ttl_seconds
+# machine-wide, regardless of how many terminals are open.
+ttl_seconds=30
+poll_seconds=15
 lock_owned=0
 
 mkdir -p "$cache_root" || exit 1
