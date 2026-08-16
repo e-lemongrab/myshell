@@ -162,7 +162,7 @@ reload_shell
 
 All components are enabled if no prior state exists. A disabled module no longer loads its aliases on the next shell. Base aliases that are not tied to an operational module remain available.
 
-Known defect: this gating is currently defeated. `core/shells/bash/aliases/.aliases` respects the activation state, but `.base.sh`, `.git.sh`, and `.modules.sh` are sourced after it and redefine the same aliases unconditionally, so a disabled module keeps its command until those legacy files are removed.
+The loader sources `core/shells/bash/aliases/.aliases` and nothing else. It used to glob the whole directory, which meant any leftover file there was sourced *after* `.aliases` and silently overrode it — on one machine, untracked strays from an older layout redefined module aliases with no activation check and disabled this feature entirely. `tests/validate.bash` now fails if the glob comes back.
 
 ### PowerShell
 
@@ -214,7 +214,7 @@ This relationship is part of the intended architecture of the framework.
 
 Commands that erase broad local state show a preview and require an explicit confirmation. This applies to Docker cleanup, child-repository hard resets, Terraform reinitialization, Git hard reset, and disk formatting.
 
-Known defect: two of those confirmations do not reach the shell. `tfi` and `ghard` are redefined without a guard in `.base.sh` and `.git.sh`, which load after `.aliases` and win, so both currently run unattended. `dockrm`, `repo-undo-local-changes`, and `format_disk_ext4` are unaffected and still prompt.
+`tfi` and `ghard` are aliases onto confirmation wrappers (`myshell_terraform_init_upgrade`, `myshell_git_hard_reset`). Because a stray file in `aliases/` was once able to redefine them without their prompts, `tests/validate.bash` asserts that both still resolve to their wrappers.
 
 The ext4 formatter excludes every physical disk backing `/`, refuses devices with mounted descendants, shows the selected layout, and requires the exact device path before writing. It also supports device names that require a `p1` suffix, such as NVMe and MMC devices.
 
@@ -251,7 +251,7 @@ bash tests/validate.bash
 
 It runs ten numbered steps: shell syntax, ShellCheck findings, loader and alias targets, activation defaults and legacy migration, the interactive `cls` case, the persistent-job and prompt OS-name regressions, YAML/Compose models, Docker build inputs and version policy, immutable GitHub Action references, and a portability and personal-file inventory.
 
-Known gap: step 4 sources `core/shells/bash/aliases/.aliases` on its own, which is not the load path a real shell takes. `.bashrc` sources every file in that directory, so `.base.sh`, `.git.sh`, and `.modules.sh` load afterwards and override it.
+Step 4 also pins down the alias loader itself: it fails if `.bashrc` goes back to globbing `aliases/`, fails if `tfi` or `ghard` stop resolving to their confirmation wrappers, and warns about any leftover file in `aliases/` besides `.aliases` (`.gitignore` hides them, so they are easy to miss).
 
 ## Extension model
 
