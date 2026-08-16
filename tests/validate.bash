@@ -104,6 +104,29 @@ for alias_name in cls reload_shell gp tmuxon tfi bw alpine bw_clone help_git joh
 	alias "$alias_name" >/dev/null 2>&1 || fail "default alias unavailable: $alias_name"
 done
 
+# The alias loader must not glob its directory. It used to, which meant any stray file
+# in aliases/ was sourced after .aliases and overrode it: tfi and ghard lost their
+# confirmation prompts and module aliases stopped honouring the enable/disable state.
+grep -q '"\$dir"/\.\*' core/shells/bash/.bashrc &&
+	fail "the alias loader globs its directory again; a stray file there can override .aliases"
+grep -qF 'aliases/.aliases' core/shells/bash/.bashrc ||
+	fail "the alias loader no longer sources .aliases explicitly"
+
+# Strays in aliases/ are inert now that the loader is explicit, but .gitignore hides
+# them, so say so out loud rather than let them sit there unseen for months again.
+stray_count=$(find core/shells/bash/aliases -maxdepth 1 -type f ! -name '.aliases' | wc -l)
+[ "$stray_count" -eq 0 ] ||
+	printf 'WARN: %d untracked file(s) in core/shells/bash/aliases/ besides .aliases; they are no longer sourced and can be deleted\n' "$stray_count"
+
+# Whatever the loader does, the destructive wrappers must be what the shell resolves.
+for guarded_alias in tfi:myshell_terraform_init_upgrade ghard:myshell_git_hard_reset; do
+	alias_name=${guarded_alias%%:*}
+	wrapper_name=${guarded_alias#*:}
+	alias "$alias_name" 2>/dev/null | grep -qF "$wrapper_name" ||
+		fail "$alias_name does not resolve to its confirmation wrapper $wrapper_name"
+done
+unset guarded_alias alias_name wrapper_name
+
 myshell disable help/git >/dev/null || fail "disable help/git"
 if MY_SHELL_ENV_DIR="$MY_SHELL_ENV_DIR" project_path="$root" bash --noprofile --norc -c '
 	. core/shells/bash/functions/myshell.bash

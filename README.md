@@ -162,6 +162,8 @@ reload_shell
 
 All components are enabled if no prior state exists. A disabled module no longer loads its aliases on the next shell. Base aliases that are not tied to an operational module remain available.
 
+The loader sources `core/shells/bash/aliases/.aliases` and nothing else. It used to glob the whole directory, which meant any leftover file there was sourced *after* `.aliases` and silently overrode it — on one machine, untracked strays from an older layout redefined module aliases with no activation check and disabled this feature entirely. `tests/validate.bash` now fails if the glob comes back.
+
 ### PowerShell
 
 Once the Bash configuration is active, and if `pwsh` is installed, `myshell` can also set the PowerShell profile at:
@@ -193,7 +195,7 @@ Examples include:
 
 The public-IP refresh, `config_files` synchronization, SSH agent setup, and AWS prompt identity lookup remain enabled by default:
 
-- public IP refresh remains a persistent shell job; a shared cache and lock limit the external request to once every 10 minutes across terminals
+- public IP refresh remains a persistent shell job. It polls the local egress source IP every two seconds with no external request, and fetches the public IP only when that local address changes; a 30-second cache TTL and a shared lock keep the external request to roughly one every 30 seconds across all terminals
 - companion configuration synchronization is asynchronous, atomic, and cached for one hour
 - a valid SSH agent is reused instead of starting one per terminal
 - `aws sts get-caller-identity` runs at most once per profile every five minutes and only supplies the role/session shown in the prompt
@@ -211,6 +213,8 @@ This relationship is part of the intended architecture of the framework.
 ## Operational safety
 
 Commands that erase broad local state show a preview and require an explicit confirmation. This applies to Docker cleanup, child-repository hard resets, Terraform reinitialization, Git hard reset, and disk formatting.
+
+`tfi` and `ghard` are aliases onto confirmation wrappers (`myshell_terraform_init_upgrade`, `myshell_git_hard_reset`). Because a stray file in `aliases/` was once able to redefine them without their prompts, `tests/validate.bash` asserts that both still resolve to their wrappers.
 
 The ext4 formatter excludes every physical disk backing `/`, refuses devices with mounted descendants, shows the selected layout, and requires the exact device path before writing. It also supports device names that require a `p1` suffix, such as NVMe and MMC devices.
 
@@ -245,7 +249,9 @@ Run the same validation gate used by CI:
 bash tests/validate.bash
 ```
 
-It checks shell syntax, ShellCheck findings, loader and alias targets, activation defaults and migration, the interactive `cls` case, YAML/Compose models, Docker build inputs and version policy, and immutable GitHub Action references.
+It runs ten numbered steps: shell syntax, ShellCheck findings, loader and alias targets, activation defaults and legacy migration, the interactive `cls` case, the persistent-job and prompt OS-name regressions, YAML/Compose models, Docker build inputs and version policy, immutable GitHub Action references, and a portability and personal-file inventory.
+
+Step 4 also pins down the alias loader itself: it fails if `.bashrc` goes back to globbing `aliases/`, fails if `tfi` or `ghard` stop resolving to their confirmation wrappers, and warns about any leftover file in `aliases/` besides `.aliases` (`.gitignore` hides them, so they are easy to miss).
 
 ## Extension model
 

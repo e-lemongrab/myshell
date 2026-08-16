@@ -5,14 +5,15 @@ set -u
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/myshell"
 cache_file="$HOME/public_ip.txt"
 lock_dir="$cache_root/public-ip.lock"
-# Detection cadence: an actual ifconfig.me fetch only fires when the cache is
-# older than ttl_seconds, so this is what gates how fast an IP/VPN change is
-# noticed (~30s here). poll_seconds must stay <= ttl_seconds or it adds lag.
-# The dir-lock + mtime gate keep it to ~one external request per ttl_seconds
-# machine-wide, regardless of how many terminals are open.
+# Strategy: event-driven public-IP detection.
+#   - Poll local egress source IP every 2s. When it changes → fetch public IP now.
+#   - Also force a fetch at most every ttl_seconds even if no local change (safety net).
+#   - The dir-lock + mtime gate keep it to ~one external request per ttl_seconds
+#     machine-wide, regardless of how many terminals are open.
 ttl_seconds=30
-poll_seconds=15
+loop_seconds=2
 lock_owned=0
+last_src_ip=""  # cached local egress source IP for change detection
 
 mkdir -p "$cache_root" || exit 1
 
@@ -23,10 +24,18 @@ release_lock() {
 	fi
 }
 
+# Fetch the local egress source IP (zero external requests)
+get_local_egress_ip() {
+	ip route get 1.1.1.1 2>/dev/null | awk '/src/ {print $NF; exit}'
+}
+
+# Actually fetch public IP from ifconfig.me; bypass TTL gate when $1 == "force"
 refresh_public_ip() {
+	local _force="${1:-no}"
 	local age real_ip current_line new_line temporary_file
 
-	if [ -f "$cache_file" ]; then
+	# Skip if cache is fresh and not forced
+	if [ "$_force" != "force" ] && [ -f "$cache_file" ]; then
 		age=$(($(date +%s) - $(stat -c %Y "$cache_file" 2>/dev/null || printf '0')))
 		[ "$age" -lt "$ttl_seconds" ] && return 0
 	fi
@@ -63,7 +72,20 @@ refresh_public_ip() {
 trap release_lock EXIT
 trap 'exit 0' HUP INT TERM
 
+# --- Main loop: detect local egress IP changes → fetch public IP on change ---
 while true; do
+	current_src_ip=$(get_local_egress_ip)
+
+	if [ -n "$current_src_ip" ]; then
+		# Local egress changed → immediately check public IP
+		if [ "$current_src_ip" != "$last_src_ip" ]; then
+			refresh_public_ip "force"
+			last_src_ip="$current_src_ip"
+		fi
+	fi
+
+	# Safety-net: if we haven't fetched recently, force one
 	refresh_public_ip
-	sleep "$poll_seconds"
+
+	sleep "$loop_seconds"
 done

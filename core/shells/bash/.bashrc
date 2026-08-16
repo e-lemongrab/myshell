@@ -30,13 +30,15 @@ fi
 if [ -f "$project_path"/core/shells/bash/functions/shellcheck.bash ]; then
 	. "$project_path"/core/shells/bash/functions/shellcheck.bash
 fi
-# Load aliases
-dir="$project_path/core/shells/bash/aliases"
-if [ -d "$dir" ] && [ "$(ls -A "$dir")" ]; then
-  for f in "$dir"/.* "$dir"/*; do
-    [ -f "$f" ] && . "$f"
-  done
-fi
+# Load aliases. Only .aliases is sourced, and deliberately so: this used to glob the
+# whole directory, so any leftover file there was sourced AFTER .aliases and silently
+# overrode it. Untracked strays (.base.sh, .git.sh, .modules.sh from an old layout) did
+# exactly that on a live machine — they redefined tfi and ghard without their
+# confirmation prompts and redefined module aliases with no myshell_module_enabled
+# check, which disabled the whole enable/disable feature. .aliases is the single source.
+alias_file="$project_path/core/shells/bash/aliases/.aliases"
+[ -f "$alias_file" ] && . "$alias_file"
+unset alias_file
 # Load enabled profiles in their established order.
 for profile_name in .git-configs .appearance .completion .history .path .pwsh .software .config_files .ssh; do
 	profile_file="$project_path/core/shells/bash/profiles/$profile_name"
