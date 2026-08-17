@@ -1,0 +1,12 @@
+version: 2
+
+updates:
+  # The actions are pinned to commit SHAs so a moved tag cannot change what CI
+  # runs. That only stays safe if something keeps them current, otherwise the
+  # pins rot into unpatched versions — which is worse than not pinning.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
