@@ -260,15 +260,19 @@ while IFS= read -r dockerfile; do
 done < <(find modules/docker -type f -name Dockerfile | sort)
 printf '[8/10] Docker structure and versioning\n'
 
-# 9. CI actions are immutable and the duplicated manual workflow stays removed.
-[ ! -e .github/workflows/manual.yml ] || fail "manual.yml duplicates workflow_dispatch in schedule.yml"
+# 9. CI actions are immutable and every workflow declares its permissions.
+[ ! -e .github/workflows/manual.yml ] || fail "manual.yml duplicates an existing workflow_dispatch"
 while IFS= read -r action_reference; do
 	action_value=${action_reference##*@}
 	[[ "$action_value" =~ ^[0-9a-f]{40}([[:space:]]*#.*)?$ ]] ||
 		fail "GitHub Action is not pinned to a commit: $action_reference"
 done < <(sed -nE 's/^[[:space:]]*uses:[[:space:]]*//p' .github/workflows/*.yml)
-grep -q '^permissions:' .github/workflows/schedule.yml || fail "publish workflow permissions missing"
-grep -q '^permissions:' .github/workflows/validate.yml || fail "validation workflow permissions missing"
+# Checked per workflow present rather than by name: the previous version named
+# schedule.yml explicitly, so removing that workflow left the gate failing on a
+# file it no longer expected to exist.
+while IFS= read -r workflow; do
+	grep -q '^permissions:' "$workflow" || fail "workflow permissions missing: $workflow"
+done < <(find .github/workflows -maxdepth 1 -name '*.yml' | sort)
 printf '[9/10] CI policy\n'
 
 # 10. Core portability rules and an informational personal-config inventory.
