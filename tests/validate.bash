@@ -27,7 +27,7 @@ for file in core/shells/bash/.bashrc core/shells/bash/.bash_profile \
 	[ -f "$file" ] || continue
 	bash -n "$file" 2>/dev/null || fail "shell syntax: $file"
 done
-printf '[1/10] shell syntax\n'
+printf '[1/11] shell syntax\n'
 
 # 2. ShellCheck all scripts for errors and critical runtime files for warnings.
 if command -v shellcheck >/dev/null 2>&1; then
@@ -60,7 +60,7 @@ if command -v shellcheck >/dev/null 2>&1; then
 else
 	printf 'WARN: shellcheck is unavailable; static shell analysis skipped\n'
 fi
-printf '[2/10] shell static analysis\n'
+printf '[2/11] shell static analysis\n'
 
 # 3. Every literal loader and alias target must exist.
 while IFS= read -r relative_path; do
@@ -75,10 +75,10 @@ while IFS='|' read -r alias_name relative_path; do
 	[ -n "$relative_path" ] || continue
 	[ -f "$relative_path" ] || fail "alias '$alias_name' points to missing $relative_path"
 done < <(
-	sed -nE 's@.*alias ([A-Za-z_0-9]+)=.*modules/([^"'"'"']+).*@\1|modules/\2@p' \
+	sed -nE 's@.*alias ([A-Za-z_0-9]+)=.*modules/([^"'"'"' ]+).*@\1|modules/\2@p' \
 		core/shells/bash/aliases/.aliases
 )
-printf '[3/10] loader and alias targets\n'
+printf '[3/11] loader and alias targets\n'
 
 # 4. A fresh state enables every full module ID and every profile.
 temporary_root=$(mktemp -d)
@@ -139,7 +139,7 @@ if MY_SHELL_ENV_DIR="$MY_SHELL_ENV_DIR" project_path="$root" bash --noprofile --
 else
 	fail "module disable does not control aliases independently"
 fi
-printf '[4/10] module and profile state\n'
+printf '[4/11] module and profile state\n'
 
 # 5. Migrate basename-only state without losing ambiguous modules.
 migration_root="$temporary_root/migration"
@@ -150,7 +150,7 @@ for module_id in help/git utils/git help/arch bw; do
 	grep -qxF "$module_id" "$migration_root/module_state/enabled.modules" ||
 		fail "legacy migration missing $module_id"
 done
-printf '[5/10] legacy state migration\n'
+printf '[5/11] legacy state migration\n'
 
 # 6. Smoke-test command listing and the original cls failure mode.
 export MY_SHELL_ENV_DIR="$temporary_root/smoke"
@@ -190,7 +190,7 @@ actual_os=$(AWS_PROFILE= bash --noprofile --norc -c '
 ')
 [ "$actual_os" = "$expected_os" ] ||
 	fail "prompt OS name does not match /etc/os-release PRETTY_NAME"
-printf '[6/10] framework smoke tests (%d module commands)\n' "$command_count"
+printf '[6/11] framework smoke tests (%d module commands)\n' "$command_count"
 
 # 7. Validate YAML and every Compose model without starting containers.
 if command -v yq >/dev/null 2>&1; then
@@ -215,7 +215,7 @@ if docker compose version >/dev/null 2>&1; then
 else
 	printf 'WARN: docker compose is unavailable; Compose model validation skipped\n'
 fi
-printf '[7/10] YAML and Compose\n'
+printf '[7/11] YAML and Compose\n'
 
 # 8. Docker build inputs must be canonical, present, bounded, and versioned.
 while IFS= read -r legacy_dockerfile; do
@@ -258,7 +258,7 @@ while IFS= read -r dockerfile; do
 	[ -f "$context/.dockerignore" ] ||
 		fail "missing .dockerignore in build context: $context"
 done < <(find modules/docker -type f -name Dockerfile | sort)
-printf '[8/10] Docker structure and versioning\n'
+printf '[8/11] Docker structure and versioning\n'
 
 # 9. CI actions are immutable and every workflow declares its permissions.
 [ ! -e .github/workflows/manual.yml ] || fail "manual.yml duplicates an existing workflow_dispatch"
@@ -273,7 +273,7 @@ done < <(sed -nE 's/^[[:space:]]*uses:[[:space:]]*//p' .github/workflows/*.yml)
 while IFS= read -r workflow; do
 	grep -q '^permissions:' "$workflow" || fail "workflow permissions missing: $workflow"
 done < <(find .github/workflows -maxdepth 1 -name '*.yml' | sort)
-printf '[9/10] CI policy\n'
+printf '[9/11] CI policy\n'
 
 # 10. Core portability rules and an informational personal-config inventory.
 while IFS= read -r hardcoded_path; do
@@ -292,7 +292,35 @@ personal_count=0
 for personal_file in "${personal_files[@]}"; do
 	[ -e "$personal_file" ] && personal_count=$((personal_count + 1))
 done
-printf '[10/10] portability; INFO: %d known personal/inventory files remain intentionally tracked\n' "$personal_count"
+printf '[10/11] portability; INFO: %d known personal/inventory files remain intentionally tracked\n' "$personal_count"
+
+# 11. GitHub token manager: module wiring is a hard check; the live gh/git
+# environment is reported (not enforced) because CI and fresh clones have no gh.
+gh_module="modules/utils/gh-tokens/gh_tokens.bash"
+[ -f "$gh_module" ] || fail "gh-tokens module script missing: $gh_module"
+grep -q 'case "${1:-menu}" in' "$gh_module" ||
+	fail "gh-tokens module has no subcommand entry point"
+grep -qF 'utils/gh-tokens' core/shells/bash/aliases/.aliases ||
+	fail "gh-tokens aliases not registered in .aliases"
+
+gh_env_note=""
+if command -v gh >/dev/null 2>&1; then
+	git_helper=$(git config --global --get credential.https://github.com.helper 2>/dev/null)
+	if [ -z "$git_helper" ]; then
+		git_helper=$(git config --global --get credential.helper 2>/dev/null)
+	fi
+	# gh 2.x registers a "!" helper: !<path>/gh auth git-credential
+	[[ "$git_helper" == *"gh auth git-credential"* || "$git_helper" == *gh-credential-gh* ]] ||
+		gh_env_note="git credential helper not set to gh (run gh_git)"
+else
+	gh_env_note="gh CLI not installed (expected in CI)"
+fi
+if [ -n "$gh_env_note" ]; then
+	printf 'WARN: %s\n' "$gh_env_note"
+else
+	printf 'INFO: gh + git credential helper configured\n'
+fi
+printf '[11/11] GitHub token manager\n'
 
 if [ "$failures" -eq 0 ]; then
 	printf 'VALIDATION PASSED\n'

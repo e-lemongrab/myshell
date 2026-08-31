@@ -151,5 +151,18 @@ myshell_module_enabled "utils/ssl" && alias check_domains="bash $project_path/mo
 myshell_module_enabled "utils/certs" && alias cert_base64_for_sealed_secret="bash $project_path/modules/utils/certs/cert_base64_for_sealed_secret.bash"
 myshell_module_enabled "utils/linux_scripts" && alias format_disk_ext4="bash $project_path/modules/utils/linux_scripts/format_disk_ext4.bash"
 
+# GitHub token management (multi-repo). Store: ~/.config/gh/repo_tokens
+if myshell_module_enabled "utils/gh-tokens"; then
+	alias gh_tokens="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash menu"
+	alias gh_create="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash create"
+	alias gh_status="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash status"
+	alias gh_rotate="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash rotate"
+	alias gh_git="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash git"
+	alias gh_switch="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash switch"
+	alias gh_revoke="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash revoke"
+	alias gh_init="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash init"
+	alias gh_help="bash $project_path/modules/utils/gh-tokens/gh_tokens.bash help"
+fi
+
 # yt-dlp
 myshell_module_enabled "yt-dlp" && alias download="bash $project_path/modules/yt-dlp/yt-dlp.bash"
