@@ -46,7 +46,19 @@ myshell_state_init() {
 	elif [ -s "$module_file" ]; then
 		# Migrate the previous basename-only format. Ambiguous names deliberately
 		# enable every matching full ID so an upgrade cannot silently disable one.
+		# Idempotent: only run when the state still holds legacy basename-only
+		# entries. A state that is already full-ID is left untouched, so
+		# `myshell disable` survives reloads and new modules are enabled via the
+		# menu (not force-added), keeping the enable/disable contract intact.
 		current_modules=$(myshell_collect_modules)
+		legacy_found=0
+		while IFS= read -r line; do
+			[ -n "$line" ] || continue
+			case "$line" in */*) : ;; *) legacy_found=1 ;; esac
+		done <"$module_file"
+		if [ "$legacy_found" -eq 0 ]; then
+			return 0
+		fi
 		migration="${module_file}.tmp.$$"
 		: >"$migration" || return 1
 		while IFS= read -r line; do
