@@ -3,10 +3,12 @@
 #
 # Store: ~/.config/gh/repo_tokens  (JSON, chmod 600, never committed)
 #   { "active": "<name>",
-#     "tokens": [ { "name", "token", "scopes", "created" }, ... ] }
+#     "tokens": [ { "name", "token", "scopes", "account", "created" }, ... ] }
 #
-# Active token is written to ~/.config/gh/hosts.yml (the only place gh reads)
-# and exposed to git via `gh auth setup-git` (credential helper reads hosts.yml).
+# ~/.config/gh/hosts.yml (the only place gh reads) is never edited directly:
+# switching goes through `gh auth switch` / `gh auth login --with-token`, and
+# git picks it up via `gh auth setup-git` (credential helper reads hosts.yml).
+# Everything here needs only gh, jq and curl -- no Python, no PyYAML.
 #
 # All interactive entry points are defined here and exposed as gh_* aliases
 # from core/shells/bash/aliases/.aliases when utils/gh-tokens is enabled.
@@ -21,29 +23,17 @@ gh_store_ensure() {
 		jq -n '{active:"",tokens:[]}' >"$GH_TOKEN_STORE" || return 1
 	fi
 	chmod 600 "$GH_TOKEN_STORE" 2>/dev/null
-	# Bootstrap: register the token currently active in hosts.yml, if not stored.
+	# Bootstrap: register the token gh currently has active, if not stored.
 	local current
-	current=$(python3 -c "
-import yaml,sys
-try:
-    d=yaml.safe_load(open('$GH_HOSTS'))
-    print(d['${GH_HOST}']['oauth_token'])
-except Exception:
-    pass
-" 2>/dev/null)
+	current=$(gh auth token --hostname "$GH_HOST" 2>/dev/null)
 	if [ -n "$current" ] && ! jq -e --arg t "$current" '.tokens[] | select(.token==$t)' \
 		"$GH_TOKEN_STORE" >/dev/null 2>&1; then
 		local user scopes
-		user=$(python3 -c "
-import yaml
-d=yaml.safe_load(open('$GH_HOSTS'))
-print(d['${GH_HOST}']['user'])
-" 2>/dev/null)
-		scopes=$(gh auth status --json hosts 2>/dev/null \
-			| jq -r --arg h "$GH_HOST" '.hosts[$h][0].scopes // ""' 2>/dev/null)
+		user=$(gh_hosts_active_account)
+		scopes=$(gh_hosts_scopes_for "$user")
 		jq --arg name "${user:-default}" --arg t "$current" \
-			--arg s "${scopes:-}" --arg d "$(date -Iseconds)" \
-			'.tokens += [{name:$name, token:$t, scopes:$s, created:$d}]
+			--arg s "${scopes:-}" --arg a "${user:-}" --arg d "$(date -Iseconds)" \
+			'.tokens += [{name:$name, token:$t, scopes:$s, account:$a, created:$d}]
 			 | if .active=="" then .active=$name else . end' \
 			"$GH_TOKEN_STORE" >"$GH_TOKEN_STORE.tmp.$$" \
 			&& mv "$GH_TOKEN_STORE.tmp.$$" "$GH_TOKEN_STORE" \
@@ -97,30 +87,24 @@ gh_api_account() {
 }
 
 gh_activate_token() {
-	# $1 = token value, $2 = account (optional, default = current hosts.yml user)
-	# writes hosts.yml preserving structure, multi-account aware (users map)
+	# $1 = token value, $2 = account (optional). Makes that token the active one.
+	# hosts.yml is only ever written by gh itself, so its format stays valid.
 	local token="$1" account="${2:-}"
-	python3 - "$GH_HOSTS" "$token" "${account}" <<'PYEOF' || return 1
-import sys, yaml, os
-path = sys.argv[1]
-token = sys.argv[2]
-account = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] else None
-with open(path) as f:
-    d = yaml.safe_load(f) or {}
-host = d.setdefault('github.com', {})
-user = account or host.get('user')
-if not user:
-    sys.exit('no account specified and none in hosts.yml')
-host['oauth_token'] = token
-host['user'] = user
-host.setdefault('git_protocol', 'https')
-host.setdefault('users', {}).setdefault(user, {})['oauth_token'] = token
-tmp = path + '.tmp'
-with open(tmp, 'w') as f:
-    yaml.safe_dump(d, f, default_flow_style=False)
-os.replace(tmp, path)
-PYEOF
-	[ $? -eq 0 ]
+	command -v gh >/dev/null 2>&1 || {
+		printf 'gh is not installed.\n' >&2
+		return 1
+	}
+	# gh already stores this exact token for that account: a plain switch is enough.
+	if [ -n "$account" ] && [ "$(gh_hosts_token_for "$account")" = "$token" ]; then
+		gh auth switch --hostname "$GH_HOST" --user "$account" >/dev/null || return 1
+		return 0
+	fi
+	# New or rotated token: hand it to gh, which resolves the account and stores it.
+	printf '%s\n' "$token" | gh auth login --hostname "$GH_HOST" --with-token || return 1
+	if [ -n "$account" ]; then
+		gh auth switch --hostname "$GH_HOST" --user "$account" >/dev/null 2>&1
+	fi
+	return 0
 }
 
 gh_rotate_flow() {
@@ -213,7 +197,7 @@ gh_create_flow() {
 	gh auth login --hostname "$GH_HOST" --scopes "${chosen[*]}" --web || return 1
 
 	local newtok
-	newtok=$(gh token --hostname "$GH_HOST" 2>/dev/null)
+	newtok=$(gh auth token --hostname "$GH_HOST" 2>/dev/null)
 	[ -n "$newtok" ] || { printf 'Could not read the new token.\n'; return 1; }
 
 	gh_store_ensure || return 1
@@ -287,50 +271,57 @@ gh_revoke_flow() {
 }
 
 gh_hosts_accounts() {
-	# Print account names known to gh (hosts.yml users + top-level user), one per line
-	python3 -c "
-import yaml,sys
-try:
-    d=yaml.safe_load(open('$GH_HOSTS'))
-except Exception:
-    sys.exit(0)
-h=d.get('github.com',{})
-names=[]
-top=h.get('user')
-if top: names.append(top)
-for u in (h.get('users') or {}):
-    if u not in names: names.append(u)
-print('\n'.join(names))
-" 2>/dev/null
+	# Print every account gh knows for the host, one per line
+	gh auth status --json hosts 2>/dev/null \
+		| jq -r --arg h "$GH_HOST" '.hosts[$h] // [] | .[].login' 2>/dev/null
+}
+
+gh_hosts_active_account() {
+	# Print the account gh currently has active for the host
+	gh auth status --json hosts 2>/dev/null \
+		| jq -r --arg h "$GH_HOST" \
+			'.hosts[$h] // [] | map(select(.active)) | .[0].login // empty' 2>/dev/null
 }
 
 gh_hosts_token_for() {
-	# $1 = account -> prints its oauth_token from hosts.yml (users map or top-level)
+	# $1 = account -> prints the token gh holds for it (empty if unknown)
 	local acct="$1"
-	python3 -c "
-import yaml,sys
-try:
-    d=yaml.safe_load(open('$GH_HOSTS'))
-except Exception:
-    sys.exit(0)
-h=d.get('github.com',{})
-users=h.get('users') or {}
-if '$acct' in users and users['$acct'].get('oauth_token'):
-    print(users['$acct']['oauth_token'])
-elif '$acct'==h.get('user') and h.get('oauth_token'):
-    print(h['oauth_token'])
-" 2>/dev/null
+	[ -n "$acct" ] || return 0
+	gh auth token --hostname "$GH_HOST" --user "$acct" 2>/dev/null
 }
 
 gh_hosts_scopes_for() {
 	# $1 = account -> prints scopes for that account via gh auth status (no token)
 	local acct="$1"
 	gh auth status --json hosts 2>/dev/null \
-		| jq -r --arg a "$acct" '
-			.hosts["github.com"] as $arr
+		| jq -r --arg h "$GH_HOST" --arg a "$acct" '
+			.hosts[$h] as $arr
 			| (if ($arr|type)=="array" then $arr else [$arr] end)
 			| map(select(.login==$a))
 			| .[0].scopes // empty' 2>/dev/null
+}
+
+gh_store_add_account() {
+	# $1 = account gh already knows -> copy it into the myshell store (idempotent)
+	local acct="$1" tok scopes
+	if jq -e --arg n "$acct" '.tokens[] | select(.name==$n)' "$GH_TOKEN_STORE" >/dev/null 2>&1; then
+		printf 'Account "%s" is already in the store — not duplicated.\n' "$acct"
+		return 0
+	fi
+	tok=$(gh_hosts_token_for "$acct")
+	[ -n "$tok" ] || {
+		printf 'Could not read a token for "%s" from gh.\n' "$acct" >&2
+		return 1
+	}
+	scopes=$(gh_hosts_scopes_for "$acct")
+	jq --arg n "$acct" --arg t "$tok" --arg s "${scopes:-}" \
+		--arg a "$acct" --arg d "$(date -Iseconds)" \
+		'.tokens += [{name:$n, token:$t, scopes:$s, account:$a, created:$d}]
+		 | if .active=="" then .active=$n else . end' \
+		"$GH_TOKEN_STORE" >"$GH_TOKEN_STORE.tmp.$$" \
+		&& mv "$GH_TOKEN_STORE.tmp.$$" "$GH_TOKEN_STORE" \
+		&& chmod 600 "$GH_TOKEN_STORE" \
+		&& printf 'Registered account "%s" (scopes: %s).\n' "$acct" "${scopes:-?}"
 }
 
 gh_register_existing() {
@@ -339,7 +330,7 @@ gh_register_existing() {
 	local accounts
 	accounts=$(gh_hosts_accounts)
 	if [ -z "$accounts" ]; then
-		printf 'No accounts found in %s.\n' "$GH_HOSTS"
+		printf 'No accounts known to gh (hosts file: %s).\n' "$GH_HOSTS"
 		printf 'Authenticate one first:  gh auth login   (then retry gh_init)\n'
 		return 1
 	fi
@@ -352,30 +343,19 @@ gh_register_existing() {
 		printf '  %s) %s%s\n' "$n" "$a" "$marker"
 		n=$((n + 1))
 	done
-	printf 'Account to register (1-%d): ' "$((n - 1))"
+	printf 'Account to register (1-%d, or "a" for all): ' "$((n - 1))"
 	read -r pick
+	if [ "$pick" = "a" ] || [ "$pick" = "A" ]; then
+		for a in $accounts; do gh_store_add_account "$a"; done
+		return 0
+	fi
 	[[ "$pick" =~ ^[0-9]+$ ]] && [ "$pick" -ge 1 ] && [ "$pick" -le "$((n - 1))" ] || {
 		printf 'Cancelled.\n'; return 0
 	}
 	# map pick -> account name
 	local acct
 	acct=$(for a in $accounts; do echo "$a"; done | sed -n "${pick}p")
-	local tok scopes
-	tok=$(gh_hosts_token_for "$acct")
-	[ -n "$tok" ] || { printf 'Could not read a token for "%s" in hosts.yml.\n' "$acct"; return 1; }
-	scopes=$(gh_hosts_scopes_for "$acct")
-	if jq -e --arg n "$acct" '.tokens[] | select(.name==$n)' "$GH_TOKEN_STORE" >/dev/null 2>&1; then
-		printf 'Account "%s" is already in the store — not duplicated.\n' "$acct"
-		return 0
-	fi
-	jq --arg n "$acct" --arg t "$tok" --arg s "${scopes:-}" \
-		--arg a "$acct" --arg d "$(date -Iseconds)" \
-		'.tokens += [{name:$n, token:$t, scopes:$s, account:$a, created:$d}]
-		 | if .active=="" then .active=$n else . end' \
-		"$GH_TOKEN_STORE" >"$GH_TOKEN_STORE.tmp.$$" \
-		&& mv "$GH_TOKEN_STORE.tmp.$$" "$GH_TOKEN_STORE" \
-		&& chmod 600 "$GH_TOKEN_STORE" \
-		&& printf 'Registered account "%s" (scopes: %s).\n' "$acct" "${scopes:-?}"
+	gh_store_add_account "$acct"
 }
 
 gh_init() {
