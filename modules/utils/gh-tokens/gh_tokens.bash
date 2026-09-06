@@ -572,7 +572,7 @@ gh_help_show() {
 	printf '              new one (browser+scopes), setup git, or show status\n'
 	printf '  gh_help     this text\n'
 	printf '\nStore: %s (chmod 600, never committed)\n' "$GH_TOKEN_STORE"
-	printf 'Active token is written to %s and used by gh and git.\n' "$GH_HOSTS"
+	printf 'Active token is managed by gh in %s and used by gh and git.\n' "$GH_HOSTS"
 }
 
 # --- entry point (invoked via the gh_* aliases) ---
